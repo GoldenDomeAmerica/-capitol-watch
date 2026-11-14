@@ -99,10 +99,10 @@ The site bar stays hidden when no sponsor week is active. `/go/example-week` rec
 
 ## Deploy on Vercel
 
-1. Import this repository. Framework preset is Next.js. Build command is `npm run build`.
-2. Add **Neon Postgres** from the Vercel Marketplace so `DATABASE_URL` is injected. Do not use the retired `@vercel/postgres` package.
+1. Import this repository. Framework preset is Next.js. `vercel.json` sets the build command to `npm run vercel-build`.
+2. Add **Neon Postgres** from the Vercel Marketplace so `DATABASE_URL` is injected for Preview and Production. `DATABASE_URL_UNPOOLED` is used for migrations when Vercel provides it. Do not use the retired `@vercel/postgres` package.
 3. Set `ADMIN_TOKEN`, `NEXT_PUBLIC_SITE_URL`, and the Resend variables in the project settings for Production and Preview. Preview can omit Resend. The pages still load.
-4. From a machine that has the production `DATABASE_URL`:
+4. Each Vercel build applies Drizzle migrations, then loads the Georgia snapshot only when the `bills` table is empty. It does not delete or replace rows that are already there. If `DATABASE_URL` is missing, that step is skipped and `next build` still runs. Local setup is still:
 
 ```bash
 npm run db:migrate
@@ -119,7 +119,8 @@ The free Hobby plan is enough: serverless Node functions, no Edge runtime, and n
 | Script | What it does |
 | --- | --- |
 | `npm run dev` | Local site |
-| `npm run build` | Production build |
+| `npm run build` | Production build, without touching the database |
+| `npm run vercel-build` | Migrate, seed only if `bills` is empty, then `next build` |
 | `npm run lint` | ESLint |
 | `npm run db:generate` | Write a new Drizzle migration after a schema change |
 | `npm run db:migrate` | Apply migrations |

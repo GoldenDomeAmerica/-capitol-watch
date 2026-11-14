@@ -1,0 +1,1 @@
+ALTER TABLE "signups" ADD COLUMN "states" text[] DEFAULT '{}'::text[] NOT NULL;

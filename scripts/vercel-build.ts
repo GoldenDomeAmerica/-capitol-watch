@@ -37,7 +37,7 @@ function run(command: string, args: string[], env: NodeJS.ProcessEnv): Promise<v
   });
 }
 
-async function billCount(url: string): Promise<number> {
+async function billCounts(url: string): Promise<{ ga: number; pa: number }> {
   const local = /localhost|127\.0\.0\.1/.test(url);
   const sql = postgres(url, {
     max: 1,
@@ -46,8 +46,15 @@ async function billCount(url: string): Promise<number> {
     connect_timeout: 20,
   });
   try {
-    const rows = await sql<{ n: number }[]>`select count(*)::int as n from bills`;
-    return Number(rows[0]?.n ?? 0);
+    const rows = await sql<{ state_id: string; n: number }[]>`
+      select state_id, count(*)::int as n from bills group by state_id
+    `;
+    const counts = { ga: 0, pa: 0 };
+    for (const row of rows) {
+      if (row.state_id === "ga") counts.ga = Number(row.n);
+      if (row.state_id === "pa") counts.pa = Number(row.n);
+    }
+    return counts;
   } finally {
     await sql.end({ timeout: 5 });
   }
@@ -66,12 +73,18 @@ async function main() {
     const migrateEnv: NodeJS.ProcessEnv = { ...process.env, DATABASE_URL: migrateUrl };
     await run(bin("drizzle-kit"), ["migrate"], migrateEnv);
 
-    const count = await billCount(migrateUrl);
-    if (count === 0) {
-      console.log("Bills table is empty. Seeding Georgia data.");
+    const counts = await billCounts(migrateUrl);
+    if (counts.ga === 0) {
+      console.log("No Georgia bills yet. Seeding Georgia data.");
       await run(bin("tsx"), ["scripts/seed.ts"], migrateEnv);
     } else {
-      console.log(`Bills table already has ${count} rows. Leaving existing data in place.`);
+      console.log(`Georgia already has ${counts.ga} bills. Leaving those rows in place.`);
+    }
+    if (counts.pa === 0) {
+      console.log("No Pennsylvania bills yet. Seeding Pennsylvania data.");
+      await run(bin("tsx"), ["scripts/seed-pennsylvania.ts"], migrateEnv);
+    } else {
+      console.log(`Pennsylvania already has ${counts.pa} bills. Leaving those rows in place.`);
     }
   }
 

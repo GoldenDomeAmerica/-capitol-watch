@@ -30,6 +30,13 @@ export type GovernorAction = {
   actNumber?: number | string | null;
 };
 
+export type BillAction = {
+  date?: string | null;
+  chamber?: string | null;
+  text: string;
+  vote?: string | null;
+};
+
 export const states = pgTable("states", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -66,9 +73,11 @@ export const bills = pgTable(
     lastActionDate: date("last_action_date", { mode: "string" }),
     sourceUrl: text("source_url").notNull(),
     textUrl: text("text_url"),
+    memoUrl: text("memo_url"),
     billType: text("bill_type"),
     governorAction: jsonb("governor_action").$type<GovernorAction | null>(),
     passageVotes: jsonb("passage_votes").$type<PassageVote[] | null>(),
+    actions: jsonb("actions").$type<BillAction[] | null>(),
     featured: boolean("featured").notNull().default(false),
     legislationId: integer("legislation_id"),
     updatedAt: timestamp("updated_at", { withTimezone: true })
@@ -76,7 +85,7 @@ export const bills = pgTable(
       .defaultNow(),
   },
   (table) => [
-    uniqueIndex("bills_slug_idx").on(table.slug),
+    uniqueIndex("bills_state_slug_idx").on(table.stateId, table.slug),
     index("bills_state_session_idx").on(table.stateId, table.session),
     index("bills_featured_idx").on(table.featured),
     index("bills_last_action_idx").on(table.lastActionDate),
@@ -127,7 +136,7 @@ export const legislators = pgTable(
     isCurrent: boolean("is_current").notNull().default(true),
   },
   (table) => [
-    uniqueIndex("legislators_slug_idx").on(table.slug),
+    uniqueIndex("legislators_state_slug_idx").on(table.stateId, table.slug),
     index("legislators_chamber_district_idx").on(table.chamber, table.district),
     index("legislators_current_idx").on(table.isCurrent),
   ],
@@ -202,6 +211,11 @@ export const signups = pgTable("signups", {
   email: text("email").notNull().unique(),
   consent: boolean("consent").notNull().default(false),
   source: text("source"),
+  // One slug from the signup dropdown today. An array so a later multi-state picker can store more than one.
+  states: text("states")
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
   resendContactId: text("resend_contact_id"),
   resendStatus: text("resend_status"),
   createdAt: timestamp("created_at", { withTimezone: true })

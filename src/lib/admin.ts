@@ -1,6 +1,8 @@
 import { timingSafeEqual } from "node:crypto";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { audienceStates } from "@/lib/audience";
+import { STATES } from "@/lib/states";
 import { getDb } from "@/db";
 import {
   pageviews,
@@ -60,12 +62,38 @@ export async function reviewSubmission(
   return row ?? null;
 }
 
+export async function signupCountsByState(): Promise<Record<string, number>> {
+  const byState = Object.fromEntries(STATES.map((state) => [state.slug, 0]));
+  const db = getDb();
+  if (!db) return byState;
+  const byStateRows = await db.execute<{ state_slug: string; n: number }>(sql`
+    select state_slug, count(distinct signup_id)::int as n
+    from (
+      select id as signup_id, 'georgia' as state_slug
+      from signups
+      where cardinality(states) = 0
+      union all
+      select id as signup_id, state_slug
+      from signups, unnest(states) as state_slug
+      where cardinality(states) > 0
+    ) choices
+    group by state_slug
+  `);
+  const counted = Array.isArray(byStateRows)
+    ? byStateRows
+    : ((byStateRows as { rows?: { state_slug: string; n: number }[] }).rows ?? []);
+  for (const row of counted) {
+    if (row.state_slug in byState) byState[row.state_slug] = Number(row.n);
+  }
+  return byState;
+}
+
 export async function adminStats() {
   const db = getDb();
   if (!db) {
     return {
       configured: false,
-      signups: { total: 0, last30Days: 0 },
+      signups: { total: 0, last30Days: 0, byState: Object.fromEntries(STATES.map((state) => [state.slug, 0])) },
       pageviews: { total: 0, thisMonth: 0 },
       sponsorClicks: { total: 0, bySponsor: [] as { slug: string; name: string; clicks: number }[] },
       topPages: [] as { path: string; views: number }[],
@@ -76,6 +104,7 @@ export async function adminStats() {
     .select({ value: sql<number>`count(*)::int` })
     .from(signups)
     .where(sql`${signups.createdAt} >= now() - interval '30 days'`);
+  const byState = await signupCountsByState();
   const [viewsTotal] = await db
     .select({ value: sql<number>`coalesce(sum(${pageviews.count}), 0)::int` })
     .from(pageviews);
@@ -107,11 +136,40 @@ export async function adminStats() {
     .limit(15);
   return {
     configured: true,
-    signups: { total: signupTotal?.value ?? 0, last30Days: signupRecent?.value ?? 0 },
+    signups: { total: signupTotal?.value ?? 0, last30Days: signupRecent?.value ?? 0, byState },
     pageviews: { total: viewsTotal?.value ?? 0, thisMonth: viewsMonth?.value ?? 0 },
     sponsorClicks: { total: clickTotal?.value ?? 0, bySponsor },
     topPages,
   };
+}
+
+export async function listSignups(stateSlug: string | null) {
+  const db = getDb();
+  if (!db) return [];
+  const rows = await db
+    .select({
+      id: signups.id,
+      email: signups.email,
+      states: signups.states,
+      source: signups.source,
+      createdAt: signups.createdAt,
+    })
+    .from(signups)
+    .where(
+      stateSlug
+        ? sql`(${stateSlug} = any(${signups.states}) or (${stateSlug} = 'georgia' and cardinality(${signups.states}) = 0))`
+        : undefined,
+    )
+    .orderBy(desc(signups.createdAt))
+    .limit(200);
+  return rows.map((row) => ({
+    id: row.id,
+    email: row.email,
+    source: row.source,
+    createdAt: row.createdAt,
+    chosenStates: row.states,
+    states: audienceStates(row.states),
+  }));
 }
 
 export async function recentSearches() {

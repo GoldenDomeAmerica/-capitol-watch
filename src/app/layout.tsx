@@ -21,7 +21,7 @@ const serif = Source_Serif_4({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: {
-    default: `${SITE_NAME} · Georgia bills in plain English`,
+    default: `${SITE_NAME} · State legislatures in plain English`,
     template: `%s · ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -69,7 +69,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               : null
           }
         />
-        <Header />
+        <Header path={pathName} />
         <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6">{children}</main>
         <Footer />
       </body>

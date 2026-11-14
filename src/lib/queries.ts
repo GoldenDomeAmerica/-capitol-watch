@@ -296,7 +296,7 @@ export async function searchLegislators(options: {
     .from(legislators)
     .where(filters.length ? and(...filters) : undefined)
     .orderBy(legislators.chamber, legislators.district, legislators.name)
-    .limit(80);
+    .limit(400);
   if (q.length >= 2 && rows.length === 0 && !options.districts) {
     await db.insert(zeroResultSearches).values({
       query: q.slice(0, 200),

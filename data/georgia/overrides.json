@@ -1,0 +1,71 @@
+{
+  "forceInclude": [
+    "2025_26|HB 1",
+    "2025_26|HB 2",
+    "2025_26|HB 3",
+    "2025_26|HB 4",
+    "2025_26|HB 92",
+    "2025_26|HB 111",
+    "2025_26|HB 121",
+    "2025_26|HB 295",
+    "2025_26|HB 397",
+    "2025_26|HB 414",
+    "2025_26|HB 980",
+    "2025_26|HB 1001",
+    "2025_26|HB 1123",
+    "2025_26|HB 1272",
+    "2025_26|HB 1324",
+    "2025_26|SB 1",
+    "2025_26|SB 36",
+    "2025_26|SB 120",
+    "2025_26|SB 175",
+    "2025_26|SB 199",
+    "2025_26|SB 406",
+    "2025_26|SB 442",
+    "2025_26|SB 499"
+  ],
+  "bills": {
+    "2025_26|HB 111": {
+      "featured": true,
+      "summary": "This bill would reduce Georgia's income-tax rate. The official text also sets when the change applies and repeals conflicting law.",
+      "watchNote": "Opinion: A lower income-tax rate is a tax cut. The size of the cut and the year it starts are in the official text, not in this note."
+    },
+    "2025_26|HB 121": {
+      "featured": true,
+      "summary": "This bill, titled the Second Amendment Preservation Act, would add protections it describes as guarding the right to keep and bear arms. It would also prohibit public officers and employees from enforcing, or helping to enforce, certain federal gun laws or actions.",
+      "watchNote": "Opinion: Sponsors present this as a Second Amendment bill. Whether a state can limit help with federal gun enforcement is a legal fight this page does not decide."
+    },
+    "2025_26|SB 1": {
+      "featured": true,
+      "summary": "This bill, the Fair and Safe Athletic Opportunities Act, would set rules for student participation in middle school, high school, and college sports. It covers teams run by local school systems, public schools, participating private schools, and colleges, and it says the aim is fair and safe competition.",
+      "watchNote": "Opinion: Supporters describe this as a girls' sports bill. The rules for who competes are in the official text. Read that text before relying on a slogan."
+    },
+    "2025_26|HB 295": {
+      "featured": true,
+      "summary": "This bill would create a procedure for real property owners to claim compensation from a local government for lost property value or expenses when that government fails to follow or enforce certain laws, ordinances, or resolutions. The compiled official summary is cut off mid-sentence; the legislature's page has the full text.",
+      "watchNote": "Opinion: This is a property-rights bill about payment when local government inaction costs an owner. Who qualifies is a legal question, not something this page decides."
+    },
+    "2025_26|HB 414": {
+      "featured": true,
+      "summary": "This bill would change the campaign-finance definition of \"person\" so that it includes some people who do not live in Georgia. It would also give the State Ethics Commission added power to investigate people, documents, or information outside the state, and it would change venue rules for those out-of-state people.",
+      "watchNote": "Opinion: This is an elections-and-campaign-money bill. It is not a voter-ID bill. The definition change is in the official text."
+    },
+    "2025_26|SB 120": {
+      "featured": true,
+      "summary": "This bill would prohibit public schools, local education agencies, and public colleges from promoting, supporting, or maintaining programs or activities that advocate for diversity, equity, and inclusion. It would also set sanctions and definitions.",
+      "watchNote": "Opinion: This is a policy choice about school and college programs. It describes what the bill would restrict. It is not a description of what every campus does today."
+    },
+    "2025_26|HB 92": {
+      "summary": "This bill would postpone the date by which a local government may opt out of the base-year homestead exemption in state tax law."
+    },
+    "2025_26|SB 36": {
+      "summary": "This bill would enact the Georgia Religious Freedom Restoration Act. It would set rules for preserving religious freedom, including how a person can seek relief."
+    },
+    "2025_26|SB 175": {
+      "summary": "This bill would prohibit ranked-choice voting in Georgia elections and primaries, with the exceptions written into the official text."
+    },
+    "2025_26|HB 1324": {
+      "summary": "This bill would repeal Georgia's prohibition on possessing a firearm silencer and make conforming changes."
+    }
+  }
+}

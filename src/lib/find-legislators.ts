@@ -15,16 +15,18 @@ type ZipFile = {
   zips: Record<string, ZipRecord>;
 };
 
-let cached: ZipFile | null = null;
+const cached = new Map<string, ZipFile | null>();
 
-export async function zipFile(): Promise<ZipFile | null> {
-  if (cached) return cached;
+export async function zipFile(stateSlug: string): Promise<ZipFile | null> {
+  if (cached.has(stateSlug)) return cached.get(stateSlug) ?? null;
   try {
-    const file = path.join(process.cwd(), "data", "georgia", "zips.json");
+    const file = path.join(process.cwd(), "data", stateSlug, "zips.json");
     const raw = await readFile(file, "utf8");
-    cached = JSON.parse(raw) as ZipFile;
-    return cached;
+    const parsed = JSON.parse(raw) as ZipFile;
+    cached.set(stateSlug, parsed);
+    return parsed;
   } catch {
+    cached.set(stateSlug, null);
     return null;
   }
 }
@@ -36,29 +38,35 @@ export type DistrictHit = {
   note: string;
 };
 
-function topDistricts(rows: DistrictShare[], minimum = 0.15): DistrictShare[] {
+function topDistricts(rows: DistrictShare[], minimum: number, cap: number): DistrictShare[] {
   const sorted = [...rows].sort((a, b) => b.share - a.share);
   if (!sorted.length) return [];
   const kept = sorted.filter((row, index) => index === 0 || row.share >= minimum);
-  return kept.slice(0, 3);
+  return kept.slice(0, cap);
 }
 
-export async function districtsForZip(zip: string): Promise<{
+export async function districtsForZip(
+  stateSlug: string,
+  zip: string,
+): Promise<{
   city: string | null;
   counties: string[];
   districts: DistrictHit[];
 } | null> {
-  const data = await zipFile();
+  const data = await zipFile(stateSlug);
   const record = data?.zips[zip];
   if (!record) return null;
+  const splitAware = stateSlug === "pennsylvania";
+  const minimum = splitAware ? 0.02 : 0.15;
+  const cap = splitAware ? 8 : 3;
   const districts: DistrictHit[] = [
-    ...topDistricts(record.house).map((row) => ({
+    ...topDistricts(record.house, minimum, cap).map((row) => ({
       chamber: "house" as const,
       district: row.district,
       share: row.share,
       note: "ZIP area",
     })),
-    ...topDistricts(record.senate).map((row) => ({
+    ...topDistricts(record.senate, minimum, cap).map((row) => ({
       chamber: "senate" as const,
       district: row.district,
       share: row.share,
@@ -68,8 +76,8 @@ export async function districtsForZip(zip: string): Promise<{
   return { city: record.city, counties: record.counties, districts };
 }
 
-export async function countyNames(): Promise<string[]> {
-  const data = await zipFile();
+export async function countyNames(stateSlug: string): Promise<string[]> {
+  const data = await zipFile(stateSlug);
   return data?.counties ?? [];
 }
 
@@ -77,7 +85,10 @@ type CensusMatch = {
   geographies?: Record<string, { BASENAME?: string; NAME?: string }[]>;
 };
 
-export async function districtsForAddress(address: string): Promise<{
+export async function districtsForAddress(
+  address: string,
+  censusState: string,
+): Promise<{
   matchedAddress: string | null;
   county: string | null;
   districts: DistrictHit[];
@@ -118,12 +129,12 @@ export async function districtsForAddress(address: string): Promise<{
     }
     const geos = match.geographies ?? {};
     const state = Object.entries(geos).find(([name]) => name === "States")?.[1]?.[0];
-    if (state?.BASENAME && state.BASENAME !== "Georgia") {
+    if (state?.BASENAME && state.BASENAME !== censusState) {
       return {
         matchedAddress: match.matchedAddress ?? null,
         county: null,
         districts: [],
-        error: "That address is outside Georgia. This launch tracks Georgia only.",
+        error: `That address is outside ${censusState}.`,
       };
     }
     const county =

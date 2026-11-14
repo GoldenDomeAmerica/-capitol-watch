@@ -3,7 +3,7 @@ import { SubmitForm } from "@/components/forms";
 
 export const metadata: Metadata = {
   title: "Send a tip",
-  description: "Send a Georgia bill tip, a correction, or an event. Submissions go to a review queue.",
+  description: "Send a bill tip, a correction, or an event. Submissions go to a review queue.",
 };
 
 export default function SubmitPage() {
@@ -11,7 +11,7 @@ export default function SubmitPage() {
     <div className="mx-auto max-w-xl space-y-4">
       <h1 className="font-serif text-3xl text-navy">Send a tip</h1>
       <p className="text-sm leading-relaxed text-muted">
-        Bill tips, corrections, and events land in a review queue. Nothing is published automatically. If you cite a bill, include the official legis.ga.gov link when you have it.
+        Bill tips, corrections, and events land in a review queue. Nothing is published automatically. If you cite a bill, include the official legis.ga.gov or palegis.us link when you have it.
       </p>
       <SubmitForm />
     </div>

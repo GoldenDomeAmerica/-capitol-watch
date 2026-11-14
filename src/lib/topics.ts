@@ -37,6 +37,21 @@ export const TOPICS = [
       "Bills about owning, using, and getting paid for private property.",
     sortOrder: 5,
   },
+  {
+    id: "energy",
+    slug: "energy",
+    name: "Energy",
+    description:
+      "Bills about oil and gas, electricity, and other energy development.",
+    sortOrder: 6,
+  },
+  {
+    id: "abortion",
+    slug: "abortion",
+    name: "Abortion",
+    description: "Bills about abortion and related medical rules.",
+    sortOrder: 7,
+  },
 ] as const;
 
 export type TopicSlug = (typeof TOPICS)[number]["slug"];

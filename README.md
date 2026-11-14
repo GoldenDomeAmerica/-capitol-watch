@@ -1,6 +1,6 @@
 # American Capitol Watch
 
-Plain-English tracking of Georgia bills for voters. The name is national. The first section is Georgia, at `/georgia/...`, so other states can be added later without a rewrite.
+Plain-English tracking of state-legislature bills for voters. The name is national. Georgia lives at `/georgia/...` and Pennsylvania at `/pennsylvania/...`.
 
 Facts on a bill page come from the official record. A **Watch note** is opinion and is labeled that way.
 
@@ -42,6 +42,8 @@ npm run dev
 ```
 
 `db:seed` loads `data/georgia/snapshot.json` when that file is present. `npm run import:georgia` downloads the public Georgia files again, rebuilds the snapshot, and upserts. Use that to refresh the January 2027 session once the upstream files include it. Set `IMPORT_FRESH=1` on `db:seed` to do the same thing.
+
+`npm run import:pennsylvania` reads the Pennsylvania General Assembly Bill History file, the House and Senate member RSS feeds, and floor roll-call summary pages for the curated shortlist. It writes `data/pennsylvania/snapshot.json` and, when `DATABASE_URL` is set, upserts Pennsylvania only. It does not delete Georgia rows. The ZIP crosswalk is built from the Census Bureau’s 2024 legislative-district to ZCTA files. Pennsylvania is a full-time legislature, so the site labels that section “recent activity.”
 
 The importer reads:
 
@@ -102,7 +104,7 @@ The site bar stays hidden when no sponsor week is active. `/go/example-week` rec
 1. Import this repository. Framework preset is Next.js. `vercel.json` sets the build command to `npm run vercel-build`.
 2. Add **Neon Postgres** from the Vercel Marketplace so `DATABASE_URL` is injected for Preview and Production. `DATABASE_URL_UNPOOLED` is used for migrations when Vercel provides it. Do not use the retired `@vercel/postgres` package.
 3. Set `ADMIN_TOKEN`, `NEXT_PUBLIC_SITE_URL`, and the Resend variables in the project settings for Production and Preview. Preview can omit Resend. The pages still load.
-4. Each Vercel build applies Drizzle migrations, then loads the Georgia snapshot only when the `bills` table is empty. It does not delete or replace rows that are already there. If `DATABASE_URL` is missing, that step is skipped and `next build` still runs. Local setup is still:
+4. Each Vercel build applies Drizzle migrations, then loads a state snapshot only when that state has no bills yet. Georgia is seeded from `data/georgia/snapshot.json` when no Georgia bills are present. Pennsylvania is seeded from `data/pennsylvania/snapshot.json` when no Pennsylvania bills are present. Existing rows are left in place. A Pennsylvania seed never deletes Georgia data. If `DATABASE_URL` is missing, that step is skipped and `next build` still runs. Local setup is still:
 
 ```bash
 npm run db:migrate
@@ -125,5 +127,6 @@ The free Hobby plan is enough: serverless Node functions, no Edge runtime, and n
 | `npm run db:generate` | Write a new Drizzle migration after a schema change |
 | `npm run db:migrate` | Apply migrations |
 | `npm run db:seed` | Load the committed snapshot |
-| `npm run import:georgia` | Refresh bills, legislators, and votes from public files |
+| `npm run import:georgia` | Refresh Georgia bills, legislators, and votes from public files |
+| `npm run import:pennsylvania` | Refresh the Pennsylvania shortlist, roster, and floor roll calls |
 | `npm run newsletter` | Write the issue and, when configured, create a draft broadcast |

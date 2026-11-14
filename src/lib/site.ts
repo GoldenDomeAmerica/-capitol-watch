@@ -6,7 +6,7 @@ export function siteUrl(): string {
 export const SITE_NAME = "American Capitol Watch";
 
 export const SITE_DESCRIPTION =
-  "Plain-English tracking of Georgia bills at the Gold Dome: taxes, guns, schools, elections, and property rights.";
+  "Plain-English tracking of state-legislature bills. Georgia and Pennsylvania are the live sections: taxes, guns, schools, elections, property rights, energy, and abortion.";
 
 export function formatDate(value: string | Date | null | undefined): string {
   if (!value) return "No date on file";

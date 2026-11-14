@@ -12,6 +12,7 @@ import {
   topics,
   votes,
   zeroResultSearches,
+  type BillAction,
   type GovernorAction,
   type PassageVote,
 } from "@/db/schema";
@@ -78,43 +79,53 @@ const billColumns = {
   featured: bills.featured,
 };
 
-export async function getKeyBills(limit = 6): Promise<BillCard[]> {
+export async function getKeyBills(stateId: string, limit = 6): Promise<BillCard[]> {
   const db = getDb();
   if (!db) return [];
   const rows = await db
     .select(billColumns)
     .from(bills)
+    .where(eq(bills.stateId, stateId))
     .orderBy(desc(bills.featured), desc(bills.lastActionDate), bills.identifier)
     .limit(limit);
   return attachTopics(rows);
 }
 
-export async function getLatestActionDate(): Promise<string | null> {
+export async function getRecentBills(stateId: string, limit = 6): Promise<BillCard[]> {
+  const db = getDb();
+  if (!db) return [];
+  const rows = await db
+    .select(billColumns)
+    .from(bills)
+    .where(eq(bills.stateId, stateId))
+    .orderBy(desc(bills.lastActionDate), bills.identifier)
+    .limit(limit);
+  return attachTopics(rows);
+}
+
+export async function getLatestActionDate(stateId: string): Promise<string | null> {
   const db = getDb();
   if (!db) return null;
   const [row] = await db
     .select({ value: sql<string | null>`max(${bills.lastActionDate})` })
-    .from(bills);
+    .from(bills)
+    .where(eq(bills.stateId, stateId));
   return row?.value ?? null;
 }
 
 export async function searchBills(options: {
+  stateId: string;
   q?: string;
   topic?: string;
 }): Promise<BillCard[]> {
   const db = getDb();
   if (!db) return [];
-  const filters = [];
+  const filters = [eq(bills.stateId, options.stateId)];
   const q = options.q?.trim() ?? "";
   if (q) {
     const pattern = `%${q.replace(/[%_]/g, "")}%`;
-    filters.push(
-      or(
-        ilike(bills.identifier, pattern),
-        ilike(bills.title, pattern),
-        ilike(bills.summary, pattern),
-      ),
-    );
+    const match = or(ilike(bills.identifier, pattern), ilike(bills.title, pattern), ilike(bills.summary, pattern));
+    if (match) filters.push(match);
   }
   if (options.topic) {
     filters.push(eq(topics.slug, options.topic));
@@ -133,7 +144,7 @@ export async function searchBills(options: {
   if (q.length >= 2 && cards.length === 0) {
     await db.insert(zeroResultSearches).values({
       query: q.slice(0, 200),
-      scope: options.topic ? `bills:${options.topic}` : "bills",
+      scope: options.topic ? `${options.stateId}:bills:${options.topic}` : `${options.stateId}:bills`,
     });
   }
   return cards;
@@ -146,6 +157,8 @@ export type BillDetail = BillCard & {
   textUrl: string | null;
   governorAction: GovernorAction | null;
   passageVotes: PassageVote[] | null;
+  actions: BillAction[] | null;
+  memoUrl: string | null;
   sponsors: {
     name: string;
     isPrimary: boolean;
@@ -156,10 +169,14 @@ export type BillDetail = BillCard & {
   }[];
 };
 
-export async function getBill(slug: string): Promise<BillDetail | null> {
+export async function getBill(stateId: string, slug: string): Promise<BillDetail | null> {
   const db = getDb();
   if (!db) return null;
-  const [bill] = await db.select().from(bills).where(eq(bills.slug, slug)).limit(1);
+  const [bill] = await db
+    .select()
+    .from(bills)
+    .where(and(eq(bills.stateId, stateId), eq(bills.slug, slug)))
+    .limit(1);
   if (!bill) return null;
   const [card] = await attachTopics([
     {
@@ -197,14 +214,16 @@ export async function getBill(slug: string): Promise<BillDetail | null> {
     textUrl: bill.textUrl,
     governorAction: bill.governorAction,
     passageVotes: bill.passageVotes,
+    actions: bill.actions,
+    memoUrl: bill.memoUrl,
     sponsors,
   };
 }
 
-export async function listBillPaths(): Promise<{ slug: string; updatedAt: Date }[]> {
+export async function listBillPaths(): Promise<{ stateId: string; slug: string; updatedAt: Date }[]> {
   const db = getDb();
   if (!db) return [];
-  return db.select({ slug: bills.slug, updatedAt: bills.updatedAt }).from(bills);
+  return db.select({ stateId: bills.stateId, slug: bills.slug, updatedAt: bills.updatedAt }).from(bills);
 }
 
 export type LegislatorCard = {
@@ -221,6 +240,7 @@ export type LegislatorCard = {
 };
 
 export async function searchLegislators(options: {
+  stateId: string;
   q?: string;
   district?: number;
   chamber?: string;
@@ -230,7 +250,7 @@ export async function searchLegislators(options: {
 }): Promise<LegislatorCard[]> {
   const db = getDb();
   if (!db) return [];
-  const filters = [];
+  const filters = [eq(legislators.stateId, options.stateId)];
   if (!options.includeFormer) filters.push(eq(legislators.isCurrent, true));
   if (options.chamber === "house" || options.chamber === "senate") {
     filters.push(eq(legislators.chamber, options.chamber));
@@ -241,9 +261,8 @@ export async function searchLegislators(options: {
   const q = options.q?.trim() ?? "";
   if (q) {
     const pattern = `%${q.replace(/[%_]/g, "")}%`;
-    filters.push(
-      or(ilike(legislators.name, pattern), ilike(legislators.residence, pattern)),
-    );
+    const match = or(ilike(legislators.name, pattern), ilike(legislators.residence, pattern));
+    if (match) filters.push(match);
   }
   if (options.county?.trim()) {
     const county = options.county
@@ -281,19 +300,19 @@ export async function searchLegislators(options: {
   if (q.length >= 2 && rows.length === 0 && !options.districts) {
     await db.insert(zeroResultSearches).values({
       query: q.slice(0, 200),
-      scope: "legislators",
+      scope: `${options.stateId}:legislators`,
     });
   }
   return rows;
 }
 
-export async function getLegislator(slug: string) {
+export async function getLegislator(stateId: string, slug: string) {
   const db = getDb();
   if (!db) return null;
   const [person] = await db
     .select()
     .from(legislators)
-    .where(eq(legislators.slug, slug))
+    .where(and(eq(legislators.stateId, stateId), eq(legislators.slug, slug)))
     .limit(1);
   if (!person) return null;
   const sponsored = await db
@@ -330,10 +349,10 @@ export async function getLegislator(slug: string) {
   return { person, sponsored, recorded };
 }
 
-export async function listLegislatorPaths(): Promise<{ slug: string }[]> {
+export async function listLegislatorPaths(): Promise<{ stateId: string; slug: string }[]> {
   const db = getDb();
   if (!db) return [];
-  return db.select({ slug: legislators.slug }).from(legislators);
+  return db.select({ stateId: legislators.stateId, slug: legislators.slug }).from(legislators);
 }
 
 export async function recordPageview(path: string): Promise<void> {
@@ -430,5 +449,5 @@ export async function publicStats() {
 }
 
 export async function newsletterBills(limit = 5): Promise<BillCard[]> {
-  return getKeyBills(limit);
+  return getKeyBills("ga", limit);
 }

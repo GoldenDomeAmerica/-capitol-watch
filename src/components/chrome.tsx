@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { STATES } from "@/lib/states";
+import { stateListLabel, STATES } from "@/lib/states";
 import { SITE_NAME } from "@/lib/site";
 
 export function Header({ path }: { path: string | null }) {
@@ -10,11 +10,11 @@ export function Header({ path }: { path: string | null }) {
         { href: `/${active.slug}/topics/taxes`, label: "Topics" },
         { href: `/${active.slug}/legislators`, label: "Legislators" },
         ...(active.scorecards ? [{ href: `/${active.slug}/scorecards`, label: "Scorecards" }] : []),
+        ...(active.vetoes ? [{ href: `/${active.slug}/vetoes`, label: "Vetoes" }] : []),
         { href: "/submit", label: "Send a tip" },
       ]
     : [
-        { href: "/georgia/bills", label: "Georgia" },
-        { href: "/pennsylvania/bills", label: "Pennsylvania" },
+        ...STATES.map((state) => ({ href: `/${state.slug}/bills`, label: state.name })),
         { href: "/submit", label: "Send a tip" },
       ];
 
@@ -25,7 +25,7 @@ export function Header({ path }: { path: string | null }) {
         <div>
           <Link href="/" className="group">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-crimson">
-              {active ? active.name : "Georgia and Pennsylvania"}
+              {active ? active.name : stateListLabel()}
             </p>
             <p className="font-serif text-2xl leading-none text-navy group-hover:text-crimson">{SITE_NAME}</p>
           </Link>
@@ -64,7 +64,7 @@ export function Footer() {
         <div>
           <p className="font-serif text-lg">{SITE_NAME}</p>
           <p className="mt-2 text-white/80">
-            A plain-English look at the Georgia and Pennsylvania legislatures. Facts stay with the official record. Opinion is labeled.
+            A plain-English look at the {stateListLabel()} legislatures. Facts stay with the official record. Opinion is labeled.
           </p>
         </div>
         <div className="space-y-1 text-white/80">
@@ -94,7 +94,11 @@ export function Footer() {
             <a className="underline" href="https://www.palegis.us/">
               Pennsylvania General Assembly
             </a>{" "}
-            and are public information provided as is.
+            and are public information provided as is. Arizona facts come from the{" "}
+            <a className="underline" href="https://www.azleg.gov/">
+              Arizona State Legislature
+            </a>
+            .
           </p>
         </div>
       </div>

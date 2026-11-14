@@ -56,7 +56,7 @@ export async function districtsForZip(
   const data = await zipFile(stateSlug);
   const record = data?.zips[zip];
   if (!record) return null;
-  const splitAware = stateSlug === "pennsylvania";
+  const splitAware = stateSlug === "pennsylvania" || stateSlug === "arizona";
   const minimum = splitAware ? 0.02 : 0.15;
   const cap = splitAware ? 8 : 3;
   const districts: DistrictHit[] = [

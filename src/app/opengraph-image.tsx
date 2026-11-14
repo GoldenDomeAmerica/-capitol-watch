@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "American Capitol Watch — Georgia and Pennsylvania bills in plain English";
+export const alt = "American Capitol Watch — Georgia, Pennsylvania, and Arizona bills in plain English";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -21,13 +21,13 @@ export default function OpenGraphImage() {
       >
         <div style={{ display: "flex", height: 12, width: 180, background: "#8e1b2a" }} />
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ fontSize: 28, letterSpacing: 4, color: "#8e1b2a" }}>GEORGIA · PENNSYLVANIA</div>
+          <div style={{ fontSize: 28, letterSpacing: 4, color: "#8e1b2a" }}>GEORGIA · PENNSYLVANIA · ARIZONA</div>
           <div style={{ fontSize: 72, fontWeight: 700, lineHeight: 1.05, marginTop: 12 }}>
             American Capitol Watch
           </div>
-          <div style={{ fontSize: 32, marginTop: 20 }}>Plain-English bills from two state legislatures.</div>
+          <div style={{ fontSize: 32, marginTop: 20 }}>Plain-English bills from three state legislatures.</div>
         </div>
-        <div style={{ fontSize: 22 }}>Taxes · Guns · Schools · Elections · Property · Energy</div>
+        <div style={{ fontSize: 22 }}>Taxes · Guns · Schools · Elections · Property · Border</div>
       </div>
     ),
     size,

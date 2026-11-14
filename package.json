@@ -13,6 +13,7 @@
     "db:seed": "tsx scripts/seed.ts",
     "import:georgia": "tsx scripts/import-georgia.ts",
     "import:pennsylvania": "tsx scripts/import-pennsylvania.ts",
+    "import:arizona": "tsx scripts/import-arizona.ts",
     "newsletter": "tsx scripts/build-newsletter.ts",
     "email": "email dev --dir emails --port 3000"
   },

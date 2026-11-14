@@ -448,6 +448,3 @@ export async function publicStats() {
   };
 }
 
-export async function newsletterBills(limit = 5): Promise<BillCard[]> {
-  return getKeyBills("ga", limit);
-}

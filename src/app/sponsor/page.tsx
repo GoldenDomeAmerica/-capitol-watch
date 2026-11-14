@@ -26,7 +26,7 @@ export default async function SponsorPage() {
       <div className="space-y-4">
         <h1 className="font-serif text-3xl text-navy">Sponsor a week</h1>
         <p className="text-sm leading-relaxed">
-          One week is an email slot in “This week at the Gold Dome” plus the small bar at the top of the site. The offer starts at <strong>$50 a week</strong>.
+          One week is an email slot in the American Capitol Watch newsletter plus the small bar at the top of the site. The offer starts at <strong>$50 a week</strong>.
         </p>
         <dl className="grid grid-cols-2 gap-3">
           <div className="rounded-lg border border-line bg-paper p-4">

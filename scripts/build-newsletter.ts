@@ -3,65 +3,108 @@ import path from "node:path";
 import { config as loadEnv } from "dotenv";
 import { render } from "react-email";
 import { Resend } from "resend";
-import WeeklyGoldDome from "../emails/weekly-gold-dome";
+import WeeklyIssue, { type WeeklyStateSection } from "../emails/weekly-issue";
+import { getDb } from "../src/db";
+import { signups } from "../src/db/schema";
 import { isPlaceholderFrom, isUnset } from "../src/lib/email-address";
-import { getEmailSponsor, newsletterBills } from "../src/lib/queries";
+import { getEmailSponsor, getKeyBills, getRecentBills } from "../src/lib/queries";
+import { ensureAudienceSetup, syncSignupStates, topicName } from "../src/lib/resend-audience";
 import { formatDate, siteUrl } from "../src/lib/site";
+import { STATES } from "../src/lib/states";
 
 loadEnv({ path: ".env.local" });
 loadEnv({ path: ".env" });
 
 async function main() {
-  const bills = await newsletterBills(5);
   const sponsor = await getEmailSponsor().catch(() => null);
   const origin = siteUrl();
   const issueDate = formatDate(new Date().toISOString());
-  const element = WeeklyGoldDome({
-    issueDate,
-    siteUrl: `${origin}/georgia/bills`,
-    sponsorName: sponsor?.name ?? null,
-    paidForBy: sponsor?.paidForBy ?? null,
-    postalAddress: process.env.NEWSLETTER_POSTAL_ADDRESS || null,
-    bills: bills.map((bill) => ({
-      identifier: bill.identifier,
-      title: bill.title,
-      summary: firstSentence(bill.summary),
-      url: `${origin}/georgia/bills/${bill.slug}`,
-    })),
-  });
-  const html = await render(element);
+  const sections: WeeklyStateSection[] = [];
+  for (const state of STATES) {
+    const bills = state.fullTime ? await getRecentBills(state.id, 5) : await getKeyBills(state.id, 5);
+    sections.push({
+      slug: state.slug,
+      name: state.name,
+      note: state.fullTime
+        ? "Recent activity. This legislature meets full time."
+        : "The latest tracked bills in this state.",
+      bills: bills.map((bill) => ({
+        identifier: bill.identifier,
+        title: bill.title,
+        summary: firstSentence(bill.summary),
+        url: `${origin}/${state.slug}/bills/${bill.slug}`,
+      })),
+    });
+  }
+
   const outDir = path.join(process.cwd(), "newsletter-out");
   await mkdir(outDir, { recursive: true });
-  const file = path.join(outDir, "this-week-at-the-gold-dome.html");
-  await writeFile(file, html);
-  console.log(`Wrote ${file} with ${bills.length} bills.`);
+  for (const section of sections) {
+    const html = await render(
+      WeeklyIssue({
+        issueDate,
+        sections: [section],
+        siteUrl: `${origin}/${section.slug}/bills`,
+        sponsorName: sponsor?.name ?? null,
+        paidForBy: sponsor?.paidForBy ?? null,
+        postalAddress: process.env.NEWSLETTER_POSTAL_ADDRESS || null,
+      }),
+    );
+    const file = path.join(outDir, `american-capitol-watch-${section.slug}.html`);
+    await writeFile(file, html);
+    console.log(`Wrote ${file} with ${section.bills.length} bills.`);
+  }
 
   const apiKey = process.env.RESEND_API_KEY;
   const segmentId = process.env.RESEND_AUDIENCE_ID;
   const from = process.env.NEWSLETTER_FROM;
   if (isUnset(apiKey) || isUnset(segmentId) || isPlaceholderFrom(from)) {
     console.log(
-      "Skipped Resend broadcast. Set RESEND_API_KEY, RESEND_AUDIENCE_ID (a segment id), and a real NEWSLETTER_FROM after the domain is verified. The HTML file is the draft.",
+      "Skipped Resend drafts. Set RESEND_API_KEY, RESEND_AUDIENCE_ID (the American Capitol Watch segment), and a real NEWSLETTER_FROM after the domain is verified. The HTML files are the drafts.",
     );
     shutdown(0);
   }
-  if (bills.length === 0) {
-    console.log("Skipped broadcast because the database has no bills to include.");
-    shutdown(0);
-  }
+
   const resend = new Resend(apiKey);
-  const created = await resend.broadcasts.create({
-    name: `This week at the Gold Dome ${issueDate}`,
-    from: from!,
-    subject: `This week at the Gold Dome — ${issueDate}`,
-    html,
-    segmentId: segmentId!,
-  });
-  if (created.error) {
-    console.error(`Resend did not create a draft: ${created.error.message}`);
+  const setup = await ensureAudienceSetup(resend);
+  if (!setup.ok) {
+    console.error(`Could not prepare Resend state topics: ${setup.reason}`);
     shutdown(1);
   }
-  console.log(`Created draft broadcast ${created.data?.id}. It was not sent.`);
+  const db = getDb();
+  if (db) {
+    const rows = await db
+      .select({ email: signups.email, states: signups.states })
+      .from(signups);
+    const synced = await syncSignupStates(resend, segmentId!, setup.topics, rows);
+    console.log(`Tagged ${synced.updated} subscribers in Resend. ${synced.failed} could not be tagged. No email was sent.`);
+  }
+
+  for (const section of sections) {
+    const html = await render(
+      WeeklyIssue({
+        issueDate,
+        sections: [section],
+        siteUrl: `${origin}/${section.slug}/bills`,
+        sponsorName: sponsor?.name ?? null,
+        paidForBy: sponsor?.paidForBy ?? null,
+        postalAddress: process.env.NEWSLETTER_POSTAL_ADDRESS || null,
+      }),
+    );
+    const created = await resend.broadcasts.create({
+      name: `American Capitol Watch ${issueDate} ${section.name}`,
+      from: from!,
+      subject: `American Capitol Watch — ${section.name} — ${issueDate}`,
+      html,
+      segmentId: segmentId!,
+      topicId: setup.topics[section.slug as keyof typeof setup.topics],
+    });
+    if (created.error) {
+      console.error(`Resend did not create the ${section.name} draft: ${created.error.message}`);
+      shutdown(1);
+    }
+    console.log(`Created draft broadcast ${created.data?.id} for ${topicName(section.name)}. It was not sent.`);
+  }
   shutdown(0);
 }
 

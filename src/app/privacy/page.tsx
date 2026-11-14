@@ -10,7 +10,7 @@ export default function PrivacyPage() {
     <div className="max-w-2xl space-y-4 text-sm leading-relaxed">
       <h1 className="font-serif text-3xl text-navy">Privacy</h1>
       <p>
-        The weekly email is optional. The box is unchecked until you check it. We store your email in our database. If Resend is configured, we also add you to that audience so the newsletter can be sent later. The newsletter includes an unsubscribe link.
+        The weekly email is optional. The box is unchecked until you check it. You pick one state. We store your email and that choice. A signup from before the state picker, with no state stored, is treated as Georgia. If Resend is configured, we add you to the American Capitol Watch segment and mark that state on the contact. The newsletter includes an unsubscribe link.
       </p>
       <p>
         Tips and sponsor notes store the name, email, and message you submit so a person can review them. We count pageviews on the server as a total per path per day. We do not sell the list.

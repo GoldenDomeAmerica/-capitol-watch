@@ -211,6 +211,11 @@ export const signups = pgTable("signups", {
   email: text("email").notNull().unique(),
   consent: boolean("consent").notNull().default(false),
   source: text("source"),
+  // One slug from the signup dropdown today. An array so a later multi-state picker can store more than one.
+  states: text("states")
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
   resendContactId: text("resend_contact_id"),
   resendStatus: text("resend_status"),
   createdAt: timestamp("created_at", { withTimezone: true })

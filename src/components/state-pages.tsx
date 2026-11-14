@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BillCardView, BillSearch } from "@/components/bills";
 import { StatusBanner } from "@/components/chrome";
+import { SignupForm } from "@/components/signup-form";
 import { databaseConfigured } from "@/db";
 import type { BillAction, GovernorAction, PassageVote } from "@/db/schema";
 import { logError } from "@/lib/errors";
@@ -237,6 +238,7 @@ export async function BillsIndexPage({
         <h1 className="font-serif text-3xl text-navy">{heading}</h1>
         <BillSearch stateSlug={state.slug} q={q} />
         <StatusBanner>Connect the database to search bills.</StatusBanner>
+        <SignupForm />
       </div>
     );
   }
@@ -253,6 +255,7 @@ export async function BillsIndexPage({
       <div className="space-y-4">
         <h1 className="font-serif text-3xl text-navy">{heading}</h1>
         <StatusBanner>Search is unavailable until the database responds.</StatusBanner>
+        <SignupForm />
       </div>
     );
   }
@@ -281,6 +284,7 @@ export async function BillsIndexPage({
           ))}
         </div>
       )}
+      <SignupForm />
     </div>
   );
 }

@@ -1,14 +1,23 @@
 import Link from "next/link";
+import type { GovernorAction } from "@/db/schema";
 import type { BillCard } from "@/lib/queries";
 import { chamberLabel, formatDate } from "@/lib/site";
 
+export function hobbsVetoBadge(stateSlug: string, action: GovernorAction | null | undefined): string | null {
+  if (stateSlug !== "arizona") return null;
+  if (!action?.status || !/veto/i.test(action.status)) return null;
+  return "Vetoed by Gov. Hobbs";
+}
+
 export function BillCardView({ bill, stateSlug }: { bill: BillCard; stateSlug: string }) {
+  const veto = hobbsVetoBadge(stateSlug, bill.governorAction);
   return (
     <article className="rounded-lg border border-line bg-paper p-4">
       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
         <span className="text-crimson">{bill.identifier}</span>
         <span>{chamberLabel(bill.chamber)}</span>
         <span>{bill.status || "Status not listed"}</span>
+        {veto ? <span className="rounded-full bg-crimson px-2 py-0.5 text-white">{veto}</span> : null}
       </div>
       <h3 className="mt-1 font-serif text-xl leading-snug text-navy">
         <Link href={`/${stateSlug}/bills/${bill.slug}`} className="hover:text-crimson">

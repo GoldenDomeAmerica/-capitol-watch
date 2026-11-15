@@ -52,6 +52,13 @@ export const TOPICS = [
     description: "Bills about abortion and related medical rules.",
     sortOrder: 7,
   },
+  {
+    id: "border",
+    slug: "border",
+    name: "Border & immigration",
+    description: "Bills about the border, immigration, and related state enforcement.",
+    sortOrder: 8,
+  },
 ] as const;
 
 export type TopicSlug = (typeof TOPICS)[number]["slug"];

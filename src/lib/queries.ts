@@ -31,6 +31,7 @@ export type BillCard = {
   chamber: string;
   sessionName: string;
   featured: boolean;
+  governorAction: GovernorAction | null;
   topics: { slug: string; name: string }[];
 };
 
@@ -77,6 +78,7 @@ const billColumns = {
   chamber: bills.chamber,
   sessionName: bills.sessionName,
   featured: bills.featured,
+  governorAction: bills.governorAction,
 };
 
 export async function getKeyBills(stateId: string, limit = 6): Promise<BillCard[]> {
@@ -191,6 +193,7 @@ export async function getBill(stateId: string, slug: string): Promise<BillDetail
       chamber: bill.chamber,
       sessionName: bill.sessionName,
       featured: bill.featured,
+      governorAction: bill.governorAction,
     },
   ]);
   const sponsors = await db
@@ -218,6 +221,17 @@ export async function getBill(stateId: string, slug: string): Promise<BillDetail
     memoUrl: bill.memoUrl,
     sponsors,
   };
+}
+
+export async function getVetoedBills(stateId: string): Promise<BillCard[]> {
+  const db = getDb();
+  if (!db) return [];
+  const rows = await db
+    .select(billColumns)
+    .from(bills)
+    .where(and(eq(bills.stateId, stateId), sql`${bills.governorAction}->>'status' ILIKE '%veto%'`))
+    .orderBy(desc(bills.lastActionDate), bills.identifier);
+  return attachTopics(rows);
 }
 
 export async function listBillPaths(): Promise<{ stateId: string; slug: string; updatedAt: Date }[]> {

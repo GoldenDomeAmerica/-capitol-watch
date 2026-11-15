@@ -5,7 +5,7 @@ import { StatusBanner } from "@/components/chrome";
 import { databaseConfigured } from "@/db";
 import { getKeyBills, getLatestActionDate, getRecentBills, type BillCard } from "@/lib/queries";
 import { logError } from "@/lib/errors";
-import { stateBySlug } from "@/lib/states";
+import { STATES, stateBySlug } from "@/lib/states";
 import { TOPICS } from "@/lib/topics";
 import { formatDate, isRecentAction } from "@/lib/site";
 
@@ -16,8 +16,8 @@ export default async function HomePage() {
         <HomeIntro />
         <StateList />
         <StatusBanner>
-          The database is not connected yet. Set DATABASE_URL, run the migration, and seed Georgia and Pennsylvania. The rest of
-          the site stays up.
+          The database is not connected yet. Set DATABASE_URL, run the migration, and seed Georgia, Pennsylvania, and Arizona.
+          The rest of the site stays up.
         </StatusBanner>
         <SignupForm />
       </div>
@@ -26,21 +26,25 @@ export default async function HomePage() {
 
   let georgiaBills: BillCard[] | undefined;
   let pennsylvaniaBills: BillCard[] | undefined;
+  let arizonaBills: BillCard[] | undefined;
   let georgiaLatest: string | null = null;
   let pennsylvaniaLatest: string | null = null;
+  let arizonaLatest: string | null = null;
   let failed = false;
   try {
-    [georgiaBills, pennsylvaniaBills, georgiaLatest, pennsylvaniaLatest] = await Promise.all([
+    [georgiaBills, pennsylvaniaBills, arizonaBills, georgiaLatest, pennsylvaniaLatest, arizonaLatest] = await Promise.all([
       getKeyBills("ga", 4),
       getRecentBills("pa", 4),
+      getRecentBills("az", 4),
       getLatestActionDate("ga"),
       getLatestActionDate("pa"),
+      getLatestActionDate("az"),
     ]);
   } catch (error) {
     await logError(error, "/");
     failed = true;
   }
-  if (failed || !georgiaBills || !pennsylvaniaBills) {
+  if (failed || !georgiaBills || !pennsylvaniaBills || !arizonaBills) {
     return (
       <div className="space-y-6">
         <HomeIntro />
@@ -106,6 +110,33 @@ export default async function HomePage() {
           </div>
         )}
       </section>
+      <section aria-labelledby="arizona-bills">
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <h2 id="arizona-bills" className="font-serif text-2xl text-navy">
+            Key Arizona bills
+          </h2>
+          <Link href="/arizona/bills" className="text-sm font-semibold text-crimson">
+            All Arizona bills
+          </Link>
+        </div>
+        <p className="mb-3 text-sm text-muted">
+          {arizonaLatest
+            ? `Latest recorded action: ${formatDate(arizonaLatest)}. ${stateBySlug("arizona")?.sessionNote ?? ""}`
+            : stateBySlug("arizona")?.sessionNote}{" "}
+          <Link className="font-semibold text-crimson" href="/arizona/vetoes">
+            Vetoed bills
+          </Link>
+        </p>
+        {arizonaBills.length === 0 ? (
+          <StatusBanner>No Arizona bills are loaded yet. The importer has not been seeded into this database.</StatusBanner>
+        ) : (
+          <div className="grid gap-3">
+            {arizonaBills.map((bill) => (
+              <BillCardView key={bill.id} bill={bill} stateSlug="arizona" />
+            ))}
+          </div>
+        )}
+      </section>
       <section aria-labelledby="topics">
         <h2 id="topics" className="font-serif text-2xl text-navy">
           Topics
@@ -116,13 +147,14 @@ export default async function HomePage() {
               <span className="font-semibold text-navy">{topic.name}</span>
               <span className="mt-1 block text-sm text-muted">{topic.description}</span>
               <span className="mt-2 block text-sm font-semibold">
-                <Link className="text-crimson hover:underline" href={`/georgia/topics/${topic.slug}`}>
-                  Georgia
-                </Link>
-                {" · "}
-                <Link className="text-crimson hover:underline" href={`/pennsylvania/topics/${topic.slug}`}>
-                  Pennsylvania
-                </Link>
+                {STATES.map((state, index) => (
+                  <span key={state.slug}>
+                    {index > 0 ? " · " : null}
+                    <Link className="text-crimson hover:underline" href={`/${state.slug}/topics/${topic.slug}`}>
+                      {state.name}
+                    </Link>
+                  </span>
+                ))}
               </span>
             </li>
           ))}
@@ -139,8 +171,8 @@ function HomeIntro() {
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-crimson">American Capitol Watch</p>
       <h1 className="font-serif text-4xl leading-tight text-navy sm:text-5xl">State legislatures, in plain English.</h1>
       <p className="max-w-2xl text-lg text-ink">
-        What moved, who sponsored it, and where it stands. Built for voters who want the bill, not a press release. Georgia and
-        Pennsylvania are the sections live now.
+        What moved, who sponsored it, and where it stands. Built for voters who want the bill, not a press release. Georgia,
+        Pennsylvania, and Arizona are the sections live now.
       </p>
     </section>
   );
@@ -152,23 +184,15 @@ function StateList() {
       <h2 id="states" className="font-serif text-2xl text-navy">
         States
       </h2>
-      <ul className="mt-3 grid gap-3 sm:grid-cols-2">
-        <li>
-          <Link href="/georgia/bills" className="block rounded-lg border border-line bg-paper p-4 hover:border-navy">
-            <span className="font-semibold text-navy">Georgia</span>
-            <span className="mt-1 block text-sm text-muted">
-              The Gold Dome. Bills, legislators, and scorecard links for the General Assembly.
-            </span>
-          </Link>
-        </li>
-        <li>
-          <Link href="/pennsylvania/bills" className="block rounded-lg border border-line bg-paper p-4 hover:border-navy">
-            <span className="font-semibold text-navy">Pennsylvania</span>
-            <span className="mt-1 block text-sm text-muted">
-              A full-time legislature. Recent activity, the roster, and ZIP or address lookup.
-            </span>
-          </Link>
-        </li>
+      <ul className="mt-3 grid gap-3 sm:grid-cols-3">
+        {STATES.map((state) => (
+          <li key={state.slug}>
+            <Link href={`/${state.slug}/bills`} className="block h-full rounded-lg border border-line bg-paper p-4 hover:border-navy">
+              <span className="font-semibold text-navy">{state.name}</span>
+              <span className="mt-1 block text-sm text-muted">{state.blurb}</span>
+            </Link>
+          </li>
+        ))}
       </ul>
     </section>
   );

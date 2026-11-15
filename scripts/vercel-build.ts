@@ -37,7 +37,7 @@ function run(command: string, args: string[], env: NodeJS.ProcessEnv): Promise<v
   });
 }
 
-async function billCounts(url: string): Promise<{ ga: number; pa: number }> {
+async function billCounts(url: string): Promise<{ ga: number; pa: number; az: number }> {
   const local = /localhost|127\.0\.0\.1/.test(url);
   const sql = postgres(url, {
     max: 1,
@@ -49,10 +49,11 @@ async function billCounts(url: string): Promise<{ ga: number; pa: number }> {
     const rows = await sql<{ state_id: string; n: number }[]>`
       select state_id, count(*)::int as n from bills group by state_id
     `;
-    const counts = { ga: 0, pa: 0 };
+    const counts = { ga: 0, pa: 0, az: 0 };
     for (const row of rows) {
       if (row.state_id === "ga") counts.ga = Number(row.n);
       if (row.state_id === "pa") counts.pa = Number(row.n);
+      if (row.state_id === "az") counts.az = Number(row.n);
     }
     return counts;
   } finally {
@@ -85,6 +86,12 @@ async function main() {
       await run(bin("tsx"), ["scripts/seed-pennsylvania.ts"], migrateEnv);
     } else {
       console.log(`Pennsylvania already has ${counts.pa} bills. Leaving those rows in place.`);
+    }
+    if (counts.az === 0) {
+      console.log("No Arizona bills yet. Seeding Arizona data.");
+      await run(bin("tsx"), ["scripts/seed-arizona.ts"], migrateEnv);
+    } else {
+      console.log(`Arizona already has ${counts.az} bills. Leaving those rows in place.`);
     }
   }
 

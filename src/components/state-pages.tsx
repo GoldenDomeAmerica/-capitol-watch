@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BillCardView, BillSearch } from "@/components/bills";
+import { BillCardView, BillSearch, hobbsVetoBadge } from "@/components/bills";
 import { StatusBanner } from "@/components/chrome";
 import { SignupForm } from "@/components/signup-form";
 import { databaseConfigured } from "@/db";
 import type { BillAction, GovernorAction, PassageVote } from "@/db/schema";
 import { logError } from "@/lib/errors";
 import { countyNames, districtsForAddress, districtsForZip, type DistrictHit } from "@/lib/find-legislators";
-import { getBill, getLegislator, searchBills, searchLegislators, type LegislatorCard } from "@/lib/queries";
+import { getBill, getLegislator, getVetoedBills, searchBills, searchLegislators, type LegislatorCard } from "@/lib/queries";
 import { chamberLabel, formatDate, partyShort } from "@/lib/site";
 import { stateBySlug, type StateSlug } from "@/lib/states";
 import { TOPICS, topicBySlug } from "@/lib/topics";
@@ -55,19 +55,23 @@ export async function BillDetailPage({ stateSlug, slug }: { stateSlug: StateSlug
   }
   if (failed) return <StatusBanner>This bill could not be loaded.</StatusBanner>;
   if (!bill) notFound();
+  const veto = hobbsVetoBadge(state.slug, bill.governorAction);
   return (
     <article className="space-y-6">
       <p className="text-xs font-semibold uppercase tracking-wide text-crimson">
         {state.name} · {bill.identifier} · {chamberLabel(bill.chamber)} · {bill.sessionName}
       </p>
       <h1 className="font-serif text-3xl leading-tight text-navy sm:text-4xl">{bill.title}</h1>
+      {veto ? <p className="inline-flex rounded-full bg-crimson px-3 py-1 text-sm font-semibold text-white">{veto}</p> : null}
       {state.fullTime ? <p className="text-sm text-muted">{state.sessionNote}</p> : null}
       <section className="rounded-lg border border-line bg-paper p-4">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Plain-English summary</h2>
         <p className="mt-2 text-base leading-relaxed">{bill.summary}</p>
         <p className="mt-2 text-xs text-muted">{state.summaryNote}</p>
       </section>
-      {bill.officialSummary && !bill.summary.startsWith("Official caption:") ? (
+      {bill.officialSummary &&
+      !bill.summary.startsWith("Official caption:") &&
+      !bill.summary.startsWith("Official short title:") ? (
         <section>
           <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Official summary</h2>
           <p className="mt-2 text-sm leading-relaxed text-ink">{bill.officialSummary}</p>
@@ -267,13 +271,22 @@ export async function BillsIndexPage({
           ? topicInfo.description
           : state.fullTime
             ? `Search by bill number or a word from the title. ${state.sessionNote}`
-            : "Search by bill number, title, or a word from the summary."}
+            : state.slug === "georgia"
+              ? "Search by bill number, title, or a word from the summary."
+              : `Search by bill number, title, or a word from the summary. ${state.sessionNote}`}
       </p>
+      {state.vetoes ? (
+        <p className="text-sm">
+          <Link className="font-semibold text-crimson underline" href={`/${state.slug}/vetoes`}>
+            Vetoed bills
+          </Link>
+        </p>
+      ) : null}
       <BillSearch
         stateSlug={state.slug}
         q={q}
         topic={topicInfo?.slug}
-        placeholder={state.slug === "pennsylvania" ? "Search bills, such as voter ID or HB 437" : undefined}
+        placeholder={state.searchPlaceholder}
       />
       {bills.length === 0 ? (
         <StatusBanner>{q ? `No bills matched “${q}”.` : "No bills are loaded for this view."}</StatusBanner>
@@ -431,9 +444,12 @@ export async function LegislatorsPage({
     <div className="space-y-4">
       <h1 className="font-serif text-3xl text-navy">Find your {state.name} legislators</h1>
       <p className="text-sm text-muted">
-        Search by name, district, or county. A county match uses the counties listed on the official member record. A ZIP uses a
-        Census ZCTA crosswalk and lists every district that covers part of a split ZIP. A street address uses the U.S. Census
-        geocoder.
+        Search by name, district, or county.{" "}
+        {state.sharedDistrict
+          ? "A county match uses the counties that overlap that legislative district. Arizona uses the same district number for the House and the Senate."
+          : "A county match uses the counties listed on the official member record."}{" "}
+        A ZIP uses a Census ZCTA crosswalk and lists every district that covers part of a split ZIP. A street address uses
+        the U.S. Census geocoder.
       </p>
       <Finder
         stateSlug={state.slug}
@@ -536,6 +552,55 @@ function Roster({ stateSlug, people }: { stateSlug: string; people: LegislatorCa
         </li>
       ))}
     </ul>
+  );
+}
+
+export function vetoesMetadata(stateSlug: StateSlug): Metadata {
+  const state = stateOrThrow(stateSlug);
+  return {
+    title: `${state.name} vetoes`,
+    description: `Tracked ${state.name} bills vetoed by Gov. Hobbs, with the official status and bill page.`,
+  };
+}
+
+export async function VetoesPage({ stateSlug }: { stateSlug: StateSlug }) {
+  const state = requireState(stateSlug);
+  if (!state.vetoes) notFound();
+  if (!databaseConfigured()) {
+    return (
+      <div className="space-y-4">
+        <h1 className="font-serif text-3xl text-navy">{state.name} vetoes</h1>
+        <StatusBanner>Connect the database to list vetoed bills.</StatusBanner>
+      </div>
+    );
+  }
+  let bills;
+  let failed = false;
+  try {
+    bills = await getVetoedBills(state.id);
+  } catch (error) {
+    await logError(error, `/${state.slug}/vetoes`);
+    failed = true;
+  }
+  if (failed || !bills) return <StatusBanner>The veto list could not be loaded.</StatusBanner>;
+  return (
+    <div className="space-y-4">
+      <h1 className="font-serif text-3xl text-navy">{state.name} vetoes</h1>
+      <p className="max-w-2xl text-sm text-muted">
+        These tracked bills have a veto in the official governor-action field. The list is this site&apos;s shortlist, not every
+        veto of the session. The badge says Vetoed by Gov. Hobbs. The status line is the legislature&apos;s wording.
+      </p>
+      <p className="text-sm font-semibold text-navy">{bills.length} vetoed bills in this file.</p>
+      {bills.length === 0 ? (
+        <StatusBanner>No vetoed bills are loaded yet.</StatusBanner>
+      ) : (
+        <div className="grid gap-3">
+          {bills.map((bill) => (
+            <BillCardView key={bill.id} bill={bill} stateSlug={state.slug} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

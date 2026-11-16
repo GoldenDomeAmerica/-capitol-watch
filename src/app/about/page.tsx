@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { stateListLabel } from "@/lib/states";
 
 export const metadata: Metadata = {
   title: "About and sources",
@@ -64,6 +66,20 @@ export default function AboutPage() {
         to 2020 ZCTA relationship files and keep each part of a split ZIP. Counties come from the overlap of the Census
         cb_2024 Arizona House and Senate district boundaries with county boundaries. Arizona uses the same district number for
         the House and the Senate.
+      </p>
+      <h2 className="font-serif text-2xl text-navy">Contact</h2>
+      <p>Owned and operated by American Capitol Watch.</p>
+      <p>Covering state legislatures across the United States, starting with {stateListLabel()}.</p>
+      <p>
+        Questions, press notes, and sponsorship inquiries go through the{" "}
+        <Link className="underline" href="/contact">
+          contact form
+        </Link>
+        . We reply within 2 business days (Mon–Fri). To fix a bill or legislator page,{" "}
+        <Link className="underline" href="/contact?topic=correction">
+          report a correction
+        </Link>
+        .
       </p>
     </div>
   );

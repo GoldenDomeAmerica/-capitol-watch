@@ -5,6 +5,7 @@ import { audienceStates } from "@/lib/audience";
 import { STATES } from "@/lib/states";
 import { getDb } from "@/db";
 import {
+  contactMessages,
   pageviews,
   signups,
   sponsorClicks,
@@ -97,6 +98,7 @@ export async function adminStats() {
       pageviews: { total: 0, thisMonth: 0 },
       sponsorClicks: { total: 0, bySponsor: [] as { slug: string; name: string; clicks: number }[] },
       topPages: [] as { path: string; views: number }[],
+      contactMessages: { total: 0, new: 0 },
     };
   }
   const [signupTotal] = await db.select({ value: sql<number>`count(*)::int` }).from(signups);
@@ -134,12 +136,27 @@ export async function adminStats() {
     .groupBy(pageviews.path)
     .orderBy(desc(sql`sum(${pageviews.count})`))
     .limit(15);
+  const contactRows = await db
+    .select({
+      status: contactMessages.status,
+      value: sql<number>`count(*)::int`,
+    })
+    .from(contactMessages)
+    .groupBy(contactMessages.status);
+  let contactTotal = 0;
+  let contactNew = 0;
+  for (const row of contactRows) {
+    const count = Number(row.value);
+    contactTotal += count;
+    if (row.status === "new") contactNew = count;
+  }
   return {
     configured: true,
     signups: { total: signupTotal?.value ?? 0, last30Days: signupRecent?.value ?? 0, byState },
     pageviews: { total: viewsTotal?.value ?? 0, thisMonth: viewsMonth?.value ?? 0 },
     sponsorClicks: { total: clickTotal?.value ?? 0, bySponsor },
     topPages,
+    contactMessages: { total: contactTotal, new: contactNew },
   };
 }
 
@@ -180,6 +197,34 @@ export async function recentSearches() {
     .from(zeroResultSearches)
     .orderBy(desc(zeroResultSearches.createdAt))
     .limit(100);
+}
+
+export async function contactMessagePage(status: string | null) {
+  const db = getDb();
+  if (!db) return { count: 0, messages: [] };
+  const where = status ? eq(contactMessages.status, status) : undefined;
+  const [countRow] = await db
+    .select({ value: sql<number>`count(*)::int` })
+    .from(contactMessages)
+    .where(where);
+  const messages = await db
+    .select()
+    .from(contactMessages)
+    .where(where)
+    .orderBy(desc(contactMessages.createdAt))
+    .limit(200);
+  return { count: Number(countRow?.value ?? 0), messages };
+}
+
+export async function markContactRead(id: number) {
+  const db = getDb();
+  if (!db) return null;
+  const [row] = await db
+    .update(contactMessages)
+    .set({ status: "read" })
+    .where(eq(contactMessages.id, id))
+    .returning();
+  return row ?? null;
 }
 
 export async function listSponsors() {

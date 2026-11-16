@@ -25,7 +25,7 @@ Copy `.env.example` to `.env.local`. The site renders an empty state when these 
 | `RESEND_API_KEY` | add contacts and send mail | Leave blank until you have a key. Signups still save in Postgres. |
 | `RESEND_AUDIENCE_ID` | put signups in a segment | Resend now calls these segments. Put the segment id here (`seg_...`). |
 | `NEWSLETTER_FROM` | create a broadcast or email the owner | Leave unset, or use a placeholder, until a domain is verified. The newsletter script still writes HTML. |
-| `OWNER_EMAIL` | receive sponsor inquiries | The form always saves. Email is sent only when this, `RESEND_API_KEY`, and a real `NEWSLETTER_FROM` are set. |
+| `OWNER_EMAIL` | receive sponsor inquiries and contact-form messages | Both forms always save. Email is sent only when this, `RESEND_API_KEY`, and a real `NEWSLETTER_FROM` are set. A failed contact email does not fail the form. |
 | `NEXT_PUBLIC_SITE_URL` | links, sitemap, canonical URLs | No trailing slash. Example: `https://your-domain.example` |
 | `NEWSLETTER_POSTAL_ADDRESS` | optional | Printed in the newsletter draft. Do not invent one. A physical address is required before you actually send marketing mail. |
 
@@ -75,7 +75,9 @@ All routes require `Authorization: Bearer $ADMIN_TOKEN`.
 
 - `GET /api/admin/queue` — pending tips, corrections, events, and sponsor inquiries
 - `POST /api/admin/approve` — `{ "id": 1, "decision": "approve" | "reject", "note": "optional" }`
-- `GET /api/admin/stats` — signups (including a count by state), pageviews, sponsor clicks, top pages
+- `GET /api/admin/stats` — signups (including a count by state), pageviews, sponsor clicks, top pages, and contact message counts (`contactMessages.total` and `contactMessages.new`)
+- `GET /api/admin/contact` — contact form messages, newest first. Add `?status=new` or `?status=read` to filter.
+- `POST /api/admin/contact` — `{ "id": 1 }` marks that message as read
 - `GET /api/admin/signups` — subscribers, with `?state=georgia` or `?state=pennsylvania` to filter. A row with no stored state is listed under Georgia.
 - `GET /api/admin/searches` — searches that returned nothing
 - `GET /api/admin/sponsors` and `POST /api/admin/sponsors`

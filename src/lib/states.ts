@@ -1,10 +1,17 @@
 export type StateSlug = "georgia" | "pennsylvania" | "arizona";
 
+export type CreditStyle = "compiled" | "public-as-is" | "legislature";
+
 export type StateSection = {
   id: "ga" | "pa" | "az";
   slug: StateSlug;
   name: string;
   legislatureName: string;
+  /** How the public footer names this state's official records. */
+  creditStyle: CreditStyle;
+  /** File, feed, or API the importer reads, named on the contact page and footer. */
+  sourceDetail: string;
+  compiler?: { label: string; href: string; note: string };
   fullTime: boolean;
   scorecards: boolean;
   vetoes: boolean;
@@ -28,6 +35,9 @@ export const STATES: StateSection[] = [
     slug: "georgia",
     name: "Georgia",
     legislatureName: "Georgia General Assembly",
+    creditStyle: "compiled",
+    sourceDetail: "official web service",
+    compiler: { label: "VoteGA.org", href: "https://votega.org", note: "(CC BY-SA 4.0)" },
     fullTime: false,
     scorecards: true,
     vetoes: false,
@@ -47,6 +57,8 @@ export const STATES: StateSection[] = [
     slug: "pennsylvania",
     name: "Pennsylvania",
     legislatureName: "Pennsylvania General Assembly",
+    creditStyle: "public-as-is",
+    sourceDetail: "Bill History file and member records",
     fullTime: true,
     scorecards: false,
     vetoes: false,
@@ -68,6 +80,8 @@ export const STATES: StateSection[] = [
     slug: "arizona",
     name: "Arizona",
     legislatureName: "Arizona State Legislature",
+    creditStyle: "legislature",
+    sourceDetail: "bill-status API and member roster",
     fullTime: false,
     scorecards: false,
     vetoes: true,
@@ -97,5 +111,6 @@ export function stateById(id: string): StateSection | null {
 export function stateListLabel(): string {
   const names = STATES.map((state) => state.name);
   if (names.length < 2) return names[0] ?? "";
-  return `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")}, and ${names.at(-1)}`;
 }

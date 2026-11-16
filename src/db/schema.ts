@@ -186,6 +186,26 @@ export const votes = pgTable(
   ],
 );
 
+export const contactMessages = pgTable(
+  "contact_messages",
+  {
+    id: serial("id").primaryKey(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    topic: text("topic").notNull(),
+    message: text("message").notNull(),
+    ipHash: text("ip_hash"),
+    status: text("status").notNull().default("new"),
+  },
+  (table) => [
+    index("contact_messages_status_created_idx").on(table.status, table.createdAt),
+    index("contact_messages_ip_created_idx").on(table.ipHash, table.createdAt),
+  ],
+);
+
 export const submissions = pgTable(
   "submissions",
   {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { stateListLabel, STATES } from "@/lib/states";
+import { stateListLabel, STATES, type StateSection } from "@/lib/states";
 import { SITE_NAME } from "@/lib/site";
 
 export function Header({ path }: { path: string | null }) {
@@ -12,10 +12,12 @@ export function Header({ path }: { path: string | null }) {
         ...(active.scorecards ? [{ href: `/${active.slug}/scorecards`, label: "Scorecards" }] : []),
         ...(active.vetoes ? [{ href: `/${active.slug}/vetoes`, label: "Vetoes" }] : []),
         { href: "/submit", label: "Send a tip" },
+        { href: "/contact", label: "Contact" },
       ]
     : [
         ...STATES.map((state) => ({ href: `/${state.slug}/bills`, label: state.name })),
         { href: "/submit", label: "Send a tip" },
+        { href: "/contact", label: "Contact" },
       ];
 
   return (
@@ -57,6 +59,72 @@ export function Header({ path }: { path: string | null }) {
   );
 }
 
+function sourceLine(state: StateSection, linkClass: string) {
+  const body = (
+    <a className={linkClass} href={state.officialSite}>
+      {state.legislatureName}
+    </a>
+  );
+  if (state.creditStyle === "compiled" && state.compiler) {
+    return (
+      <>
+        {state.name} bill, vote, and legislator data come from the {body}, compiled by{" "}
+        <a className={linkClass} href={state.compiler.href}>
+          {state.compiler.label}
+        </a>{" "}
+        {state.compiler.note}.
+      </>
+    );
+  }
+  if (state.creditStyle === "public-as-is") {
+    return (
+      <>
+        {state.name} bill, vote, and legislator data come from the {body}&apos;s {state.sourceDetail}, and are public
+        information provided as is.
+      </>
+    );
+  }
+  return (
+    <>
+      {state.name} bill, vote, and legislator data come from the {body}&apos;s {state.sourceDetail}.
+    </>
+  );
+}
+
+export function SiteTrust({ variant }: { variant: "page" | "footer" }) {
+  const linkClass = variant === "footer" ? "underline" : "underline hover:text-crimson";
+  const textClass = variant === "footer" ? "space-y-2 text-white/80" : "space-y-3 text-sm leading-relaxed";
+  return (
+    <div className={textClass}>
+      <p>Owned and operated by American Capitol Watch.</p>
+      <p>Covering state legislatures across the United States, starting with {stateListLabel()}.</p>
+      <p>We reply within 2 business days (Mon–Fri).</p>
+      <p>
+        {variant === "page" ? (
+          "Use the contact form on this page to reach American Capitol Watch."
+        ) : (
+          <>
+            Reach us through the{" "}
+            <Link className={linkClass} href="/contact">
+              contact form
+            </Link>
+            .
+          </>
+        )}
+      </p>
+      <p>
+        Edited by the American Capitol Watch editorial team. Bill, vote, and legislator data come from official state
+        legislature records. {STATES.map((state) => <span key={state.slug}>{sourceLine(state, linkClass)} </span>)}
+      </p>
+      <p>
+        <Link className={linkClass} href="/contact?topic=correction">
+          Report a correction
+        </Link>
+      </p>
+    </div>
+  );
+}
+
 export function Footer() {
   return (
     <footer className="mt-12 border-t border-line bg-navy text-white">
@@ -64,11 +132,16 @@ export function Footer() {
         <div>
           <p className="font-serif text-lg">{SITE_NAME}</p>
           <p className="mt-2 text-white/80">
-            A plain-English look at the {stateListLabel()} legislatures. Facts stay with the official record. Opinion is labeled.
+            A plain-English look at the {stateListLabel()} legislatures. Facts stay with the official record. Opinion is
+            labeled.
           </p>
         </div>
-        <div className="space-y-1 text-white/80">
-          <p>
+        <div className="space-y-2">
+          <p className="text-white/80">
+            <Link className="underline" href="/contact">
+              Contact
+            </Link>
+            {" · "}
             <Link className="underline" href="/about">
               About and sources
             </Link>
@@ -81,25 +154,7 @@ export function Footer() {
               Sponsor
             </Link>
           </p>
-          <p>
-            Georgia bill facts come from the{" "}
-            <a className="underline" href="https://www.legis.ga.gov/">
-              Georgia General Assembly
-            </a>
-            , compiled by{" "}
-            <a className="underline" href="https://votega.org">
-              VoteGA.org
-            </a>{" "}
-            (CC BY-SA 4.0). Pennsylvania facts come from the{" "}
-            <a className="underline" href="https://www.palegis.us/">
-              Pennsylvania General Assembly
-            </a>{" "}
-            and are public information provided as is. Arizona facts come from the{" "}
-            <a className="underline" href="https://www.azleg.gov/">
-              Arizona State Legislature
-            </a>
-            .
-          </p>
+          <SiteTrust variant="footer" />
         </div>
       </div>
     </footer>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CONTACT_TOPICS } from "@/lib/contact-topics";
 
 function Message({ error, message }: { error: string | null; message: string | null }) {
   if (error) return <p className="text-sm text-crimson">{error}</p>;
@@ -71,6 +72,113 @@ export function SubmitForm() {
         {pending ? "Sending…" : "Submit for review"}
       </button>
       <Message error={error} message={message} />
+    </form>
+  );
+}
+
+export function ContactForm({ initialTopic }: { initialTopic: string }) {
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const topic = CONTACT_TOPICS.some((item) => item.value === initialTopic) ? initialTopic : "general";
+
+  return (
+    <form
+      className="relative space-y-3"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        const formElement = event.currentTarget;
+        setPending(true);
+        setError(null);
+        setMessage(null);
+        const form = new FormData(formElement);
+        try {
+          const response = await fetch("/api/contact", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              name: form.get("name"),
+              email: form.get("email"),
+              topic: form.get("topic"),
+              message: form.get("message"),
+              fax: form.get("fax"),
+            }),
+          });
+          const payload = (await response.json().catch(() => null)) as { error?: string; message?: string } | null;
+          if (!response.ok) {
+            setError(payload?.error || "Could not send that. Try again.");
+            return;
+          }
+          setMessage(payload?.message || "Thanks. We received your message.");
+          formElement.reset();
+        } catch {
+          setError("Could not send that. Try again.");
+        } finally {
+          setPending(false);
+        }
+      }}
+    >
+      <div className="absolute -left-[10000px] h-px w-px overflow-hidden" aria-hidden="true">
+        <label htmlFor="contact-fax">Fax</label>
+        <input id="contact-fax" name="fax" type="text" tabIndex={-1} autoComplete="off" defaultValue="" />
+      </div>
+      <label className="block text-sm font-semibold" htmlFor="contact-name">
+        Name
+      </label>
+      <input
+        id="contact-name"
+        name="name"
+        required
+        maxLength={120}
+        autoComplete="name"
+        className="min-h-11 w-full rounded-md border border-line bg-white px-3"
+      />
+      <label className="block text-sm font-semibold" htmlFor="contact-email">
+        Email
+      </label>
+      <input
+        id="contact-email"
+        name="email"
+        type="email"
+        required
+        maxLength={254}
+        autoComplete="email"
+        className="min-h-11 w-full rounded-md border border-line bg-white px-3"
+      />
+      <label className="block text-sm font-semibold" htmlFor="contact-topic">
+        Topic
+      </label>
+      <select
+        id="contact-topic"
+        name="topic"
+        key={topic}
+        defaultValue={topic}
+        required
+        className="min-h-11 w-full rounded-md border border-line bg-white px-3"
+      >
+        {CONTACT_TOPICS.map((item) => (
+          <option key={item.value} value={item.value}>
+            {item.label}
+          </option>
+        ))}
+      </select>
+      <label className="block text-sm font-semibold" htmlFor="contact-message">
+        Message
+      </label>
+      <textarea
+        id="contact-message"
+        name="message"
+        required
+        rows={6}
+        maxLength={5000}
+        className="w-full rounded-md border border-line bg-white px-3 py-2"
+      />
+      <button type="submit" disabled={pending} className="min-h-11 rounded-md bg-navy px-4 font-semibold text-white">
+        {pending ? "Sending…" : "Send message"}
+      </button>
+      <div role="status" aria-live="polite">
+        <Message error={error} message={message} />
+      </div>
     </form>
   );
 }

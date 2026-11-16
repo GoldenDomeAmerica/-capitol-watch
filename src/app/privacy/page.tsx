@@ -13,7 +13,7 @@ export default function PrivacyPage() {
         The weekly email is optional. The box is unchecked until you check it. You pick one state. We store your email and that choice. A signup from before the state picker, with no state stored, is treated as Georgia. If Resend is configured, we add you to the American Capitol Watch segment and mark that state on the contact. The newsletter includes an unsubscribe link.
       </p>
       <p>
-        Tips and sponsor notes store the name, email, and message you submit so a person can review them. We count pageviews on the server as a total per path per day. We do not sell the list.
+        Tips and sponsor notes store the name, email, and message you submit so a person can review them. The contact form stores the name, email, topic, and message you submit, plus a hash of the network address used to send it, so we can reply and limit spam. We count pageviews on the server as a total per path per day. We do not sell the list.
       </p>
       <p>Test addresses and common disposable inboxes are rejected so the list stays deliverable.</p>
     </div>

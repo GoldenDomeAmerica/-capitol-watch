@@ -7,7 +7,7 @@ export function Header({ path }: { path: string | null }) {
   const links = active
     ? [
         { href: `/${active.slug}/bills`, label: "Bills" },
-        { href: `/${active.slug}/topics/taxes`, label: "Topics" },
+        { href: "/hot-topics", label: "Hot Topics" },
         { href: `/${active.slug}/legislators`, label: "Legislators" },
         ...(active.scorecards ? [{ href: `/${active.slug}/scorecards`, label: "Scorecards" }] : []),
         ...(active.vetoes ? [{ href: `/${active.slug}/vetoes`, label: "Vetoes" }] : []),
@@ -16,6 +16,7 @@ export function Header({ path }: { path: string | null }) {
       ]
     : [
         ...STATES.map((state) => ({ href: `/${state.slug}`, label: state.name })),
+        { href: "/hot-topics", label: "Hot Topics" },
         { href: "/submit", label: "Send a tip" },
         { href: "/contact", label: "Contact" },
       ];
@@ -26,9 +27,9 @@ export function Header({ path }: { path: string | null }) {
       <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <Link href="/" className="group">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-crimson">
-              {active ? active.name : stateListLabel()}
-            </p>
+            {active ? (
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-crimson">{active.name}</p>
+            ) : null}
             <p className="font-serif text-2xl leading-none text-navy group-hover:text-crimson">{SITE_NAME}</p>
           </Link>
           <nav aria-label="States" className="mt-2 flex gap-3 text-xs font-semibold uppercase tracking-wide">

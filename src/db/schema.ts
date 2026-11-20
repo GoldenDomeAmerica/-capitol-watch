@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   date,
   index,
   integer,
@@ -305,3 +306,24 @@ export const errors = pgTable("errors", {
     .notNull()
     .defaultNow(),
 });
+
+export const hotTopics = pgTable(
+  "hot_topics",
+  {
+    id: serial("id").primaryKey(),
+    stateSlug: text("state_slug").notNull(),
+    weekStart: date("week_start", { mode: "string" }).notNull(),
+    rank: integer("rank").notNull(),
+    title: text("title").notNull(),
+    summary: text("summary").notNull(),
+    link: text("link"),
+    sourceNote: text("source_note"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("hot_topics_state_week_rank_idx").on(table.stateSlug, table.weekStart, table.rank),
+    check("hot_topics_rank_check", sql`${table.rank} between 1 and 2`),
+  ],
+);

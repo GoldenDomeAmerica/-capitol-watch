@@ -302,10 +302,19 @@ export async function BillsIndexPage({
   );
 }
 
+function TopicHeading({ name }: { name: string }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-crimson">Hot Topics</p>
+      <h1 className="font-serif text-3xl text-navy">{name}</h1>
+    </div>
+  );
+}
+
 export function topicMetadata(slug: string): Metadata {
   const topic = topicBySlug(slug);
   if (!topic) return { title: "Topic" };
-  return { title: `${topic.name} bills`, description: topic.description };
+  return { title: `Hot Topics · ${topic.name}`, description: topic.description };
 }
 
 export function topicParams() {
@@ -327,9 +336,7 @@ export async function TopicPage({
   if (!databaseConfigured()) {
     return (
       <div className="space-y-4">
-        <h1 className="font-serif text-3xl text-navy">
-          {state.name} · {topic.name}
-        </h1>
+        <TopicHeading name={topic.name} />
         <p className="text-sm text-muted">{topic.description}</p>
         <StatusBanner>Connect the database to load this topic.</StatusBanner>
       </div>
@@ -346,9 +353,7 @@ export async function TopicPage({
   if (failed || !bills) return <StatusBanner>This topic could not be loaded.</StatusBanner>;
   return (
     <div className="space-y-4">
-      <h1 className="font-serif text-3xl text-navy">
-        {state.name} · {topic.name}
-      </h1>
+      <TopicHeading name={topic.name} />
       <p className="max-w-2xl text-sm text-muted">{topic.description}</p>
       <BillSearch stateSlug={state.slug} q={q} topic={topic.slug} />
       {bills.length === 0 ? (

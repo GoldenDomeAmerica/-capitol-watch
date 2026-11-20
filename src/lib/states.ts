@@ -48,7 +48,7 @@ export const STATES: StateSection[] = [
     summaryNote: "Rewritten from the official caption and summary. This is not legal advice.",
     censusState: "Georgia",
     addressPlaceholder: "123 Main St, Atlanta, GA",
-    blurb: "The Gold Dome. Bills, legislators, and scorecard links for the General Assembly.",
+    blurb: "Bills, legislators, and scorecard links for the General Assembly.",
     sessionNote:
       "The 2025–2026 regular session has adjourned. Georgia's next regular session opens on the second Monday in January (January 11, 2027).",
   },

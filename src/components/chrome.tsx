@@ -15,7 +15,7 @@ export function Header({ path }: { path: string | null }) {
         { href: "/contact", label: "Contact" },
       ]
     : [
-        ...STATES.map((state) => ({ href: `/${state.slug}/bills`, label: state.name })),
+        ...STATES.map((state) => ({ href: `/${state.slug}`, label: state.name })),
         { href: "/submit", label: "Send a tip" },
         { href: "/contact", label: "Contact" },
       ];
@@ -34,11 +34,12 @@ export function Header({ path }: { path: string | null }) {
           <nav aria-label="States" className="mt-2 flex gap-3 text-xs font-semibold uppercase tracking-wide">
             {STATES.map((state) => {
               const current = active?.slug === state.slug;
+              const onLanding = path === `/${state.slug}`;
               return (
                 <Link
                   key={state.slug}
-                  href={`/${state.slug}/bills`}
-                  aria-current={current ? "page" : undefined}
+                  href={`/${state.slug}`}
+                  aria-current={onLanding ? "page" : undefined}
                   className={current ? "text-crimson" : "text-navy hover:text-crimson"}
                 >
                   {state.name}

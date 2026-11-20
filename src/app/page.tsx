@@ -187,7 +187,7 @@ function StateList() {
       <ul className="mt-3 grid gap-3 sm:grid-cols-3">
         {STATES.map((state) => (
           <li key={state.slug}>
-            <Link href={`/${state.slug}/bills`} className="block h-full rounded-lg border border-line bg-paper p-4 hover:border-navy">
+            <Link href={`/${state.slug}`} className="block h-full rounded-lg border border-line bg-paper p-4 hover:border-navy">
               <span className="font-semibold text-navy">{state.name}</span>
               <span className="mt-1 block text-sm text-muted">{state.blurb}</span>
             </Link>

@@ -14,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
   }));
   const stateRoutes = STATES.flatMap((state) => {
-    const paths = [`/${state.slug}/bills`, `/${state.slug}/legislators`];
+    const paths = [`/${state.slug}`, `/${state.slug}/bills`, `/${state.slug}/legislators`];
     if (state.scorecards) paths.push(`/${state.slug}/scorecards`);
     if (state.vetoes) paths.push(`/${state.slug}/vetoes`);
     return [

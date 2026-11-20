@@ -120,6 +120,10 @@ export function Footer() {
               Contact
             </Link>
             {" · "}
+            <Link className="underline" href="/submit">
+              Send a tip
+            </Link>
+            {" · "}
             <Link className="underline" href="/about">
               About and sources
             </Link>

@@ -1,6 +1,6 @@
 # American Capitol Watch
 
-Plain-English tracking of state-legislature bills for voters. The name is national. Georgia lives at `/georgia/...`, Pennsylvania at `/pennsylvania/...`, and Arizona at `/arizona/...`.
+Plain-English tracking of state-legislature bills for voters. The name is national. Georgia lives at `/georgia/...`, Pennsylvania at `/pennsylvania/...`, and Arizona at `/arizona/...`. Idaho, New York, and Texas are in the same app and appear on a schedule: Idaho at 7:00 a.m. Eastern on November 21, 2026, New York on November 23, and Texas on November 25. Until then those routes are 404s and the states are not in the nav, home cards, sitemap, Hot Topics, or signup list.
 
 Facts on a bill page come from the official record. A **Watch note** is opinion and is labeled that way.
 
@@ -46,6 +46,8 @@ npm run dev
 `npm run import:pennsylvania` reads the Pennsylvania General Assembly Bill History file, the House and Senate member RSS feeds, and floor roll-call summary pages for the curated shortlist. It writes `data/pennsylvania/snapshot.json` and, when `DATABASE_URL` is set, upserts Pennsylvania only. It does not delete Georgia rows. The ZIP crosswalk is built from the Census Bureau’s 2024 legislative-district to ZCTA files. Pennsylvania is a full-time legislature, so the site labels that section “recent activity.”
 
 `npm run import:arizona` reads the Arizona State Legislature bill-status API and member roster for the curated shortlist. It writes `data/arizona/snapshot.json` and, when `DATABASE_URL` is set, upserts Arizona only. It does not delete Georgia or Pennsylvania rows. Sponsors come from `BillSponsor`. The ZIP crosswalk uses the Census relationship files and `cb_2024` district and county boundaries. Python packages `shapely` and `pyshp` are required to rebuild that crosswalk. See `data/arizona/SOURCES.md`.
+
+`npm run import:idaho`, `npm run import:new-york`, and `npm run import:texas` rebuild those states' snapshots from the official sources named in `docs/research-notes.md`. They do not write the database. Seeding them is `npx tsx scripts/seed-scheduled.ts idaho` (or `new-york` or `texas`). That script only inserts missing rows for that state.
 
 The importer reads:
 
@@ -139,6 +141,8 @@ npm run db:migrate
 npm run db:seed
 ```
 
+Each Vercel build also loads Idaho from `data/idaho/snapshot.json`, New York from `data/new-york/snapshot.json`, and Texas from `data/texas/snapshot.json` when that state has no bills yet. Those seeds insert rows and do not change Georgia, Pennsylvania, or Arizona. The pages stay off the public site until the launch time in `src/lib/states.ts`.
+
 5. Verify a domain in Resend before filling in `NEWSLETTER_FROM`. Create a segment and put its id in `RESEND_AUDIENCE_ID`.
 6. Run `npm run newsletter` when you want a draft. Send it from the Resend dashboard after you read it.
 
@@ -158,4 +162,8 @@ The free Hobby plan is enough: serverless Node functions, no Edge runtime, and n
 | `npm run import:georgia` | Refresh Georgia bills, legislators, and votes from public files |
 | `npm run import:pennsylvania` | Refresh the Pennsylvania shortlist, roster, and floor roll calls |
 | `npm run import:arizona` | Refresh the Arizona shortlist, roster, floor roll calls, and ZIP crosswalk |
+| `npm run import:idaho` | Rebuild the Idaho shortlist, roster, and ZIP crosswalk |
+| `npm run import:new-york` | Rebuild the New York shortlist, roster, and ZIP crosswalk |
+| `npm run import:texas` | Rebuild the Texas shortlist, roster, and ZIP crosswalk |
+| `npm test` | Check launch gating before and after each scheduled time |
 | `npm run newsletter` | Write one draft issue per state and, when configured, create unsent Resend drafts |

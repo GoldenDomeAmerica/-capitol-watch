@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { stateListLabel, STATES, type StateSection } from "@/lib/states";
+import { liveStates } from "@/lib/launch";
+import { stateListLabel, type StateSection } from "@/lib/states";
 import { SITE_NAME } from "@/lib/site";
 
 export function Header({ path }: { path: string | null }) {
+  const states = liveStates();
   const links = [
-    ...STATES.map((state) => ({
+    ...states.map((state) => ({
       href: `/${state.slug}`,
       label: state.name,
       current: path === `/${state.slug}` || path?.startsWith(`/${state.slug}/`) === true,
@@ -75,7 +77,7 @@ export function SiteTrust({ variant }: { variant: "page" | "footer" }) {
   return (
     <div className={textClass}>
       <p>Owned and operated by American Capitol Watch.</p>
-      <p>Covering state legislatures across the United States, starting with {stateListLabel()}.</p>
+      <p>Covering state legislatures across the United States, starting with {stateListLabel(liveStates())}.</p>
       <p>We reply within 2 business days (Mon–Fri).</p>
       <p>
         {variant === "page" ? (
@@ -92,7 +94,7 @@ export function SiteTrust({ variant }: { variant: "page" | "footer" }) {
       </p>
       <p>
         Edited by the American Capitol Watch editorial team. Bill, vote, and legislator data come from official state
-        legislature records. {STATES.map((state) => <span key={state.slug}>{sourceLine(state, linkClass)} </span>)}
+        legislature records. {liveStates().map((state) => <span key={state.slug}>{sourceLine(state, linkClass)} </span>)}
       </p>
       <p>
         <Link className={linkClass} href="/contact?topic=correction">
@@ -110,7 +112,7 @@ export function Footer() {
         <div>
           <p className="font-serif text-lg">{SITE_NAME}</p>
           <p className="mt-2 text-white/80">
-            A plain-English look at the {stateListLabel()} legislatures. Facts stay with the official record. Opinion is
+            A plain-English look at the {stateListLabel(liveStates())} legislatures. Facts stay with the official record. Opinion is
             labeled.
           </p>
         </div>

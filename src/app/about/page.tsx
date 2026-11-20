@@ -1,20 +1,32 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { liveStates } from "@/lib/launch";
 import { stateListLabel } from "@/lib/states";
 
-export const metadata: Metadata = {
-  title: "About and sources",
-  description: "How American Capitol Watch handles bill facts, opinion, and sources for Georgia, Pennsylvania, and Arizona.",
-};
+export function generateMetadata(): Metadata {
+  return {
+    title: "About and sources",
+    description: `How American Capitol Watch handles bill facts, opinion, and sources for ${stateListLabel(liveStates())}.`,
+  };
+}
 
 export default function AboutPage() {
+  const states = liveStates();
+  const live = new Set(states.map((state) => state.slug));
   return (
     <div className="max-w-2xl space-y-4 text-sm leading-relaxed">
       <h1 className="font-serif text-3xl text-navy">About and sources</h1>
       <p>
-        American Capitol Watch is a national name. The live sections are Georgia, at /georgia/, Pennsylvania, at
-        /pennsylvania/, and Arizona, at /arizona/. Each state keeps its own bills, topics, and legislator roster. The list of
-        live states is in the site code. A state row in the database does not add a section on its own.
+        American Capitol Watch is a national name. The live sections are{" "}
+        {states.map((state, index) => (
+          <span key={state.slug}>
+            {index > 0 && index === states.length - 1 ? ", and " : index > 0 ? ", " : ""}
+            {state.name}, at /{state.slug}/
+          </span>
+        ))}
+        . Each state keeps its own bills, topics, and legislator roster. The list of live states is in the site code, and a
+        scheduled state stays off the public site until its launch time. A state row in the database does not add a section
+        on its own.
       </p>
       <p>
         Every tracked bill links to its official page. Plain-English summaries are taken from that official caption or summary.
@@ -67,9 +79,52 @@ export default function AboutPage() {
         cb_2024 Arizona House and Senate district boundaries with county boundaries. Arizona uses the same district number for
         the House and the Senate.
       </p>
+      {live.has("idaho") ? (
+        <>
+          <h2 className="font-serif text-2xl text-navy">Idaho</h2>
+          <p>
+            Idaho bill pages link to legislature.idaho.gov. Titles, the official description, the sponsor line, actions, and
+            bill-text PDFs come from the 2026 legislation index and the bill pages. The House and Senate roster comes from the
+            legislature&apos;s member directory. This v1 tracks a curated shortlist, not every bill filed. There is no scorecards
+            page and no vetoes page.
+          </p>
+          <p>
+            A street address uses the U.S. Census Bureau geocoder. ZIP districts use the Census Bureau&apos;s 2024
+            legislative-district to 2020 ZCTA relationship files. The member directory does not list counties. House and Senate
+            share one district number.
+          </p>
+        </>
+      ) : null}
+      {live.has("new-york") ? (
+        <>
+          <h2 className="font-serif text-2xl text-navy">New York</h2>
+          <p>
+            New York bill pages link to nyassembly.gov. Summaries, sponsors, and actions come from the Assembly bill pages for
+            the 2025–2026 session. The tracked bills are ones an Assembly member prime-sponsored. The Assembly roster comes
+            from the Assembly member directory. Senate member rows cite each senator&apos;s official nysenate.gov page. This v1
+            tracks a curated shortlist, not every bill filed. There is no scorecards page and no vetoes page.
+          </p>
+        </>
+      ) : null}
+      {live.has("texas") ? (
+        <>
+          <h2 className="font-serif text-2xl text-navy">Texas</h2>
+          <p>
+            Texas bill pages link to capitol.texas.gov. Captions, authors, sponsors, and the last action come from the Texas
+            Legislature Online filed-bill reports for the 90th regular session. The House roster comes from house.texas.gov.
+            The Senate roster comes from senate.texas.gov. This v1 tracks a curated shortlist, not every bill filed. There is
+            no scorecards page and no vetoes page.
+          </p>
+          <p>
+            A street address uses the U.S. Census Bureau geocoder. ZIP districts use the Census Bureau&apos;s 2024
+            legislative-district to 2020 ZCTA relationship files. Those member directories do not list a county, a party, or a
+            phone.
+          </p>
+        </>
+      ) : null}
       <h2 className="font-serif text-2xl text-navy">Contact</h2>
       <p>Owned and operated by American Capitol Watch.</p>
-      <p>Covering state legislatures across the United States, starting with {stateListLabel()}.</p>
+      <p>Covering state legislatures across the United States, starting with {stateListLabel(states)}.</p>
       <p>
         Questions, press notes, and sponsorship inquiries go through the{" "}
         <Link className="underline" href="/contact">

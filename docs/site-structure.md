@@ -1,8 +1,10 @@
 # Site structure
 
-Source of truth for routes, layout, admin endpoints, and tables. Update this file when a route, endpoint, or table changes. Live states come from `STATES` in `src/lib/states.ts`. A row in the `states` table does not add a section by itself.
+Source of truth for routes, layout, admin endpoints, and tables. Update this file when a route, endpoint, or table changes. Configured states come from `STATES` in `src/lib/states.ts`. A state is public only when `launchesAt` is null or the timestamp is in the past. `src/lib/launch.ts` does that check at request time (`liveStates()`). A row in the `states` table does not add a section by itself.
 
-The shared layout is `src/app/layout.tsx`: optional sponsor bar, header, `<main>` (`max-w-5xl`, horizontal padding, vertical padding), and footer. The header title is the site name only. The header nav is Georgia, Pennsylvania, Arizona (whatever `STATES` lists), Hot Topics, and Contact. The current state link is crimson when the path is that state or a page under it. The footer links are Contact, Send a tip (`/submit`), About and sources, Privacy, and Sponsor, plus the source credits. The sponsor bar renders only when a sponsor week is active and the visitor has not dismissed it. Page views are recorded for paths other than `/api` and `/go`.
+Idaho launches at `2026-11-21T07:00:00-05:00`, New York at `2026-11-23T07:00:00-05:00`, and Texas at `2026-11-25T07:00:00-05:00`. Georgia, Pennsylvania, and Arizona have `launchesAt: null` and stay public. Before a launch time, that state is left out of the header, the footer credits, the home cards, the sitemap, Hot Topics, the signup dropdown, and `POST /api/signup`. A request for its routes, including child routes, is rewritten to a 404. After the launch time the same deployment shows the state on the next request. No redeploy is required. `src/lib/launch.test.ts` checks the minute before and the minute of each launch. `ACW_NOW` can override the clock when `NODE_ENV` is not `production`, for a local screenshot. Production ignores it.
+
+The shared layout is `src/app/layout.tsx`: optional sponsor bar, header, `<main>` (`max-w-5xl`, horizontal padding, vertical padding), and footer. The header title is the site name only. The header nav is the states `liveStates()` returns, then Hot Topics, and Contact. The current state link is crimson when the path is that state or a page under it. The footer links are Contact, Send a tip (`/submit`), About and sources, Privacy, and Sponsor, plus the source credits. The sponsor bar renders only when a sponsor week is active and the visitor has not dismissed it. Page views are recorded for paths other than `/api` and `/go`.
 
 Unknown URLs use `src/app/not-found.tsx`.
 
@@ -12,7 +14,7 @@ Unknown URLs use `src/app/not-found.tsx`.
 | --- | --- |
 | `/` | State cards from `STATES`, then the newsletter signup form. |
 | `/hot-topics` | Latest stored week of hot topics for each live state, or an empty line when that state has none. |
-| `/[state]` | Landing page for a slug in `STATES`: overview, links to bills, legislators, topics, and scorecards or vetoes when that state flags them. `dynamicParams` is false, so any other slug is a 404. Static state folders still own the child routes below. |
+| `/[state]` | Landing page for a slug in `STATES` that has launched: overview, links to bills, legislators, topics, and scorecards or vetoes when that state flags them. `dynamicParams` is false, so any other slug is a 404. A configured state before its launch time is also a 404. Static state folders still own the child routes below. Idaho, New York, and Texas have no scorecards page and no vetoes page. |
 | `/{state}/bills` | Searchable bill list for that state. |
 | `/{state}/bills/{slug}` | One bill: summary, sponsors, actions, official links. Georgia's folder param is named `[id]`; Pennsylvania and Arizona use `[slug]`. The value is the bill slug. |
 | `/{state}/legislators` | Roster search by name, district, chamber, county, ZIP, or street address. |
@@ -36,7 +38,7 @@ These do not use `ADMIN_TOKEN`. They return 503 when `DATABASE_URL` is missing.
 
 | Method and path | Role |
 | --- | --- |
-| `POST /api/signup` | Save a newsletter signup. Requires consent and a live state slug. |
+| `POST /api/signup` | Save a newsletter signup. Requires consent and a state slug that has already launched. |
 | `POST /api/contact` | Save a contact message. |
 | `POST /api/submit` | Save a tip or other submission for review. |
 | `POST /api/sponsor` | Save a sponsor inquiry. |
@@ -66,9 +68,9 @@ Every `/api/admin/*` route uses `adminGuard` in `src/lib/admin.ts`.
 
 ## Database
 
-Postgres, accessed with Drizzle (`src/db/schema.ts`). The app reads `DATABASE_URL` only. On Vercel, `npm run vercel-build` runs `drizzle-kit migrate` when that variable, or `DATABASE_URL_UNPOOLED`, is set, then seeds a state only if it has no bills.
+Postgres, accessed with Drizzle (`src/db/schema.ts`). The app reads `DATABASE_URL` only. On Vercel, `npm run vercel-build` runs `drizzle-kit migrate` when that variable, or `DATABASE_URL_UNPOOLED`, is set, then seeds a state only if it has no bills. Idaho, New York, and Texas use `scripts/seed-scheduled.ts`, which inserts missing rows and does not update or delete anything.
 
-Preview and production share one database. New SQL must be additive. No `DROP`, no rename, no rewrite of an existing column. Prefer `CREATE TABLE IF NOT EXISTS` and `CREATE INDEX IF NOT EXISTS`, as in `drizzle/0003_contact_messages.sql` and `drizzle/0004_hot_topics.sql`. A migration that runs on a preview build changes the shared data.
+Preview and production share one database. New SQL must be additive. No `DROP`, no rename, no rewrite of an existing column. Prefer `CREATE TABLE IF NOT EXISTS` and `CREATE INDEX IF NOT EXISTS`, as in `drizzle/0003_contact_messages.sql` and `drizzle/0004_hot_topics.sql`. A migration that runs on a preview build changes the shared data. This launch did not add a migration. The new state rows are seed data, and the pages stay dark until `launchesAt`.
 
 | Table | Role |
 | --- | --- |

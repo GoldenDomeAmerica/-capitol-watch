@@ -3,16 +3,20 @@
 import { useId, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { STATES } from "@/lib/states";
-
-function stateOnPage(path: string): string {
-  const match = STATES.find((state) => path === `/${state.slug}` || path.startsWith(`/${state.slug}/`));
-  return match?.slug ?? STATES[0]?.slug ?? "";
+function stateOnPage(path: string, states: { slug: string }[]): string {
+  const match = states.find((state) => path === `/${state.slug}` || path.startsWith(`/${state.slug}/`));
+  return match?.slug ?? states[0]?.slug ?? "";
 }
 
-export function SignupForm({ compact = false }: { compact?: boolean }) {
+export function SignupForm({
+  compact = false,
+  states,
+}: {
+  compact?: boolean;
+  states: { slug: string; name: string }[];
+}) {
   const pathname = usePathname();
-  const defaultState = stateOnPage(pathname || "/");
+  const defaultState = stateOnPage(pathname || "/", states);
   const emailId = useId();
   const stateId = useId();
   const [message, setMessage] = useState<string | null>(null);
@@ -64,7 +68,7 @@ export function SignupForm({ compact = false }: { compact?: boolean }) {
         defaultValue={defaultState}
         className="min-h-11 w-full rounded-md border border-line bg-white px-3 text-base"
       >
-        {STATES.map((state) => (
+        {states.map((state) => (
           <option key={state.slug} value={state.slug}>
             {state.name}
           </option>

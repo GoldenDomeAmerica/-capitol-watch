@@ -8,13 +8,6 @@ import { logError } from "@/lib/errors";
 import { tagContact } from "@/lib/resend-audience";
 
 export async function POST(request: Request) {
-  const db = getDb();
-  if (!db) {
-    return NextResponse.json(
-      { error: "Email signup is not available until the database is connected." },
-      { status: 503 },
-    );
-  }
   let payload: { email?: string; consent?: boolean; source?: string; state?: string };
   try {
     payload = (await request.json()) as typeof payload;
@@ -28,6 +21,13 @@ export async function POST(request: Request) {
   if (!checked.ok) return NextResponse.json({ error: checked.reason }, { status: 400 });
   const choice = parseStateChoice(payload.state);
   if (!choice.ok) return NextResponse.json({ error: choice.reason }, { status: 400 });
+  const db = getDb();
+  if (!db) {
+    return NextResponse.json(
+      { error: "Email signup is not available until the database is connected." },
+      { status: 503 },
+    );
+  }
 
   const segmentId = process.env.RESEND_AUDIENCE_ID;
   const resendResult = isUnset(segmentId)

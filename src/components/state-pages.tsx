@@ -10,12 +10,13 @@ import { logError } from "@/lib/errors";
 import { countyNames, districtsForAddress, districtsForZip, type DistrictHit } from "@/lib/find-legislators";
 import { getBill, getLegislator, getVetoedBills, searchBills, searchLegislators, type LegislatorCard } from "@/lib/queries";
 import { chamberLabel, formatDate, partyShort } from "@/lib/site";
+import { isStateLive, liveStates } from "@/lib/launch";
 import { stateBySlug, type StateSection, type StateSlug } from "@/lib/states";
 import { TOPICS, topicBySlug } from "@/lib/topics";
 
 function requireState(slug: StateSlug) {
   const state = stateBySlug(slug);
-  if (!state) notFound();
+  if (!state || !isStateLive(state)) notFound();
   return state;
 }
 
@@ -242,7 +243,7 @@ export async function BillsIndexPage({
         <h1 className="font-serif text-3xl text-navy">{heading}</h1>
         <BillSearch stateSlug={state.slug} q={q} />
         <StatusBanner>Connect the database to search bills.</StatusBanner>
-        <SignupForm />
+        <SignupForm states={liveStates()} />
       </div>
     );
   }
@@ -259,7 +260,7 @@ export async function BillsIndexPage({
       <div className="space-y-4">
         <h1 className="font-serif text-3xl text-navy">{heading}</h1>
         <StatusBanner>Search is unavailable until the database responds.</StatusBanner>
-        <SignupForm />
+        <SignupForm states={liveStates()} />
       </div>
     );
   }
@@ -297,7 +298,7 @@ export async function BillsIndexPage({
           ))}
         </div>
       )}
-      <SignupForm />
+      <SignupForm states={liveStates()} />
     </div>
   );
 }
@@ -799,7 +800,7 @@ function stateSectionLinks(state: StateSection) {
 
 export function StateLandingPage({ slug }: { slug: string }) {
   const state = stateBySlug(slug);
-  if (!state) notFound();
+  if (!state || !isStateLive(state)) notFound();
   const sections = stateSectionLinks(state);
   return (
     <div className="space-y-6">

@@ -2,7 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { audienceStates } from "@/lib/audience";
-import { STATES } from "@/lib/states";
+import { liveStates } from "@/lib/launch";
 import { getDb } from "@/db";
 import {
   contactMessages,
@@ -64,7 +64,7 @@ export async function reviewSubmission(
 }
 
 export async function signupCountsByState(): Promise<Record<string, number>> {
-  const byState = Object.fromEntries(STATES.map((state) => [state.slug, 0]));
+  const byState = Object.fromEntries(liveStates().map((state) => [state.slug, 0]));
   const db = getDb();
   if (!db) return byState;
   const byStateRows = await db.execute<{ state_slug: string; n: number }>(sql`
@@ -94,7 +94,7 @@ export async function adminStats() {
   if (!db) {
     return {
       configured: false,
-      signups: { total: 0, last30Days: 0, byState: Object.fromEntries(STATES.map((state) => [state.slug, 0])) },
+      signups: { total: 0, last30Days: 0, byState: Object.fromEntries(liveStates().map((state) => [state.slug, 0])) },
       pageviews: { total: 0, thisMonth: 0 },
       sponsorClicks: { total: 0, bySponsor: [] as { slug: string; name: string; clicks: number }[] },
       topPages: [] as { path: string; views: number }[],

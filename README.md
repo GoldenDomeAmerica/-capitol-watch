@@ -81,6 +81,29 @@ All routes require `Authorization: Bearer $ADMIN_TOKEN`.
 - `GET /api/admin/signups` — subscribers, with `?state=georgia` or `?state=pennsylvania` to filter. A row with no stored state is listed under Georgia.
 - `GET /api/admin/searches` — searches that returned nothing
 - `GET /api/admin/sponsors` and `POST /api/admin/sponsors`
+- `GET /api/admin/hot-topics` — stored weekly topics. Optional `?state=georgia` and `?weekStart=2026-11-16`.
+- `POST /api/admin/hot-topics` — replace one state's topics for one week. One or two items, ranks 1 and 2. The site does not call X. A weekly job posts the rows.
+
+```bash
+curl -X POST "$NEXT_PUBLIC_SITE_URL/api/admin/hot-topics" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "state": "georgia",
+    "weekStart": "2026-11-16",
+    "topics": [
+      {
+        "rank": 1,
+        "title": "Property tax appeals",
+        "summary": "Posts this week focused on how homeowners challenge assessments.",
+        "link": "/georgia/topics/taxes",
+        "sourceNote": "Public posts on X."
+      }
+    ]
+  }'
+```
+
+`link` and `sourceNote` are optional. `link` must be a topic or bill path already on the site. The response is `{ "state", "weekStart", "topics" }` with the saved rows (`id`, `state`, `weekStart`, `rank`, `title`, `summary`, `link`, `sourceNote`, `createdAt`). `GET` returns `{ "topics": [ ... ] }`.
 
 Approving a tip marks it reviewed. It does not invent a bill.
 

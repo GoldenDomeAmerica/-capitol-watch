@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { STATES } from "@/lib/states";
 
@@ -85,9 +86,9 @@ export function SignupForm({ compact = false }: { compact?: boolean }) {
         <input name="consent" type="checkbox" required className="mt-1" />
         <span>
           Send me the American Capitol Watch email for the state I selected. I can unsubscribe anytime. See the{" "}
-          <a className="underline" href="/privacy">
+          <Link className="underline" href="/privacy">
             privacy note
-          </a>
+          </Link>
           .
         </span>
       </label>

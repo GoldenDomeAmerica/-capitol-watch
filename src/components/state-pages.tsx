@@ -10,7 +10,7 @@ import { logError } from "@/lib/errors";
 import { countyNames, districtsForAddress, districtsForZip, type DistrictHit } from "@/lib/find-legislators";
 import { getBill, getLegislator, getVetoedBills, searchBills, searchLegislators, type LegislatorCard } from "@/lib/queries";
 import { chamberLabel, formatDate, partyShort } from "@/lib/site";
-import { stateBySlug, type StateSlug } from "@/lib/states";
+import { stateBySlug, type StateSection, type StateSlug } from "@/lib/states";
 import { TOPICS, topicBySlug } from "@/lib/topics";
 
 function requireState(slug: StateSlug) {
@@ -302,10 +302,19 @@ export async function BillsIndexPage({
   );
 }
 
+function TopicHeading({ name }: { name: string }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-crimson">Hot Topics</p>
+      <h1 className="font-serif text-3xl text-navy">{name}</h1>
+    </div>
+  );
+}
+
 export function topicMetadata(slug: string): Metadata {
   const topic = topicBySlug(slug);
   if (!topic) return { title: "Topic" };
-  return { title: `${topic.name} bills`, description: topic.description };
+  return { title: `Hot Topics · ${topic.name}`, description: topic.description };
 }
 
 export function topicParams() {
@@ -327,9 +336,7 @@ export async function TopicPage({
   if (!databaseConfigured()) {
     return (
       <div className="space-y-4">
-        <h1 className="font-serif text-3xl text-navy">
-          {state.name} · {topic.name}
-        </h1>
+        <TopicHeading name={topic.name} />
         <p className="text-sm text-muted">{topic.description}</p>
         <StatusBanner>Connect the database to load this topic.</StatusBanner>
       </div>
@@ -346,9 +353,7 @@ export async function TopicPage({
   if (failed || !bills) return <StatusBanner>This topic could not be loaded.</StatusBanner>;
   return (
     <div className="space-y-4">
-      <h1 className="font-serif text-3xl text-navy">
-        {state.name} · {topic.name}
-      </h1>
+      <TopicHeading name={topic.name} />
       <p className="max-w-2xl text-sm text-muted">{topic.description}</p>
       <BillSearch stateSlug={state.slug} q={q} topic={topic.slug} />
       {bills.length === 0 ? (
@@ -748,5 +753,93 @@ export async function LegislatorDetailPage({ stateSlug, slug }: { stateSlug: Sta
         )}
       </section>
     </article>
+  );
+}
+
+export function stateLandingMetadata(slug: string): Metadata {
+  const state = stateBySlug(slug);
+  if (!state) return { title: "State" };
+  return {
+    title: state.name,
+    description: `${state.legislatureName}. ${state.blurb}`,
+  };
+}
+
+function stateSectionLinks(state: StateSection) {
+  const links = [
+    {
+      href: `/${state.slug}/bills`,
+      label: "Bills",
+      detail: "Plain-English summaries, sponsors, status, and the official bill page.",
+    },
+    {
+      href: `/${state.slug}/legislators`,
+      label: "Legislators",
+      detail: state.sharedDistrict
+        ? "The roster, with district, county, ZIP, or address lookup. House and Senate share one district number."
+        : "The roster, with district, county, ZIP, or address lookup.",
+    },
+  ];
+  if (state.scorecards) {
+    links.push({
+      href: `/${state.slug}/scorecards`,
+      label: "Scorecards",
+      detail: "Links to public legislative scorecards. This site does not calculate scores.",
+    });
+  }
+  if (state.vetoes) {
+    links.push({
+      href: `/${state.slug}/vetoes`,
+      label: "Vetoes",
+      detail: "Tracked bills with a veto in the official record.",
+    });
+  }
+  return links;
+}
+
+export function StateLandingPage({ slug }: { slug: string }) {
+  const state = stateBySlug(slug);
+  if (!state) notFound();
+  const sections = stateSectionLinks(state);
+  return (
+    <div className="space-y-6">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-crimson">{state.legislatureName}</p>
+      <h1 className="font-serif text-4xl leading-tight text-navy">{state.name}</h1>
+      <p className="max-w-2xl text-lg text-ink">{state.blurb}</p>
+      <p className="max-w-2xl text-sm leading-relaxed text-muted">{state.sessionNote}</p>
+      <ul className="grid gap-3 sm:grid-cols-2">
+        {sections.map((section) => (
+          <li key={section.href}>
+            <Link href={section.href} className="block h-full rounded-lg border border-line bg-paper p-4 hover:border-navy">
+              <span className="font-semibold text-navy">{section.label}</span>
+              <span className="mt-1 block text-sm text-muted">{section.detail}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <section aria-labelledby="state-topics">
+        <h2 id="state-topics" className="font-serif text-2xl text-navy">
+          Topics
+        </h2>
+        <ul className="mt-3 flex flex-wrap gap-2">
+          {TOPICS.map((topic) => (
+            <li key={topic.slug}>
+              <Link
+                href={`/${state.slug}/topics/${topic.slug}`}
+                className="inline-block rounded-full bg-cream px-3 py-1 text-sm font-semibold text-navy hover:text-crimson"
+              >
+                {topic.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <p className="text-sm">
+        Official records:{" "}
+        <a className="font-semibold text-crimson underline" href={state.officialSite}>
+          {state.legislatureName}
+        </a>
+      </p>
+    </div>
   );
 }

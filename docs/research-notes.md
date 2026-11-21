@@ -2,9 +2,11 @@
 
 Source of truth for where bill data comes from and how Hot Topics is filled. Update this file when an importer or the Hot Topics contract changes. Which states are live is the `STATES` array in `src/lib/states.ts`, not whatever rows happen to be in the `states` table.
 
-The site stores a curated extract. It does not mirror every bill a legislature files. Pennsylvania and Arizona are shortlists. Plain-English summaries do not add facts that the official text does not state. A Watch note is opinion and is labeled. Street-address lookup calls the U.S. Census Bureau geocoder at request time and is not stored in the snapshots. If that service is down, name, district, county, and ZIP lookup still work.
+The site stores a curated extract. It does not mirror every bill a legislature files. Pennsylvania, Arizona, Idaho, New York, and Texas are shortlists. Plain-English summaries do not add facts that the official text does not state. A Watch note is opinion and is labeled. Street-address lookup calls the U.S. Census Bureau geocoder at request time and is not stored in the snapshots. If that service is down, name, district, county, and ZIP lookup still work.
 
-Importers upsert one state. They do not delete another state's rows. `npm run vercel-build` seeds a state only when that state has zero bills.
+Importers upsert one state. They do not delete another state's rows. `npm run vercel-build` seeds a state only when that state has zero bills. Idaho, New York, and Texas seeds only insert. They do not update an existing row.
+
+A state in `STATES` can carry `launchesAt`. Until that time it is not a public section. See `docs/site-structure.md`.
 
 ## Georgia
 
@@ -41,6 +43,34 @@ The roster includes members the legislature marks as resigned. Those rows stay s
 House and Senate share one district number. ZIP districts use the Census 2024 relationship files and keep each part of a split ZIP that is at least 2 percent of its land area. Counties come from the overlap of `cb_2024` House and Senate district boundaries with county boundaries. Rebuilding that crosswalk needs the Python packages `shapely` and `pyshp`.
 
 The next regular session opens January 11, 2027. Vetoed bills in the shortlist are listed at `/arizona/vetoes`. There is no scorecards page. This v1 is a curated shortlist, not every bill filed.
+
+## Idaho
+
+Official record: Idaho Legislature, https://legislature.idaho.gov/. The 2026 legislation index is https://legislature.idaho.gov/sessioninfo/2026/legislation/. Each tracked bill keeps that bill's page, including the official description, the "by" sponsor line, the action list, and the bill-text PDF when the page links one. The House roster is https://legislature.idaho.gov/house/membership/ and the Senate roster is https://legislature.idaho.gov/senate/membership/. See `data/idaho/SOURCES.md`.
+
+Import: `npm run import:idaho` writes `data/idaho/snapshot.json` and `data/idaho/zips.json`. It does not write the database. `scripts/seed-scheduled.ts` inserts Idaho only, and only where a row is missing. The session in the file is the 2026 regular session of the 68th Legislature, which convened January 12, 2026.
+
+House and Senate share a district number. House members are Seat A or Seat B. ZIP districts use the Census 2024 relationship files and keep each part of a split ZIP that is at least 2 percent of its land area. The directory does not list counties. Home mailing addresses and home phones on the directory are not stored. The phone on the page is the Statehouse number. Co-sponsor PDFs are not parsed. The pages do not include a member-by-member floor roll call, so this file has no `votes` rows. There is no scorecards page and no vetoes page. This v1 is a curated shortlist, not every bill filed.
+
+## New York
+
+Official record for bills and the Assembly roster: New York State Assembly, https://nyassembly.gov/. Bill summaries, sponsors, cosponsors, and actions come from the Assembly bill page for the 2025–2026 session (the session New York names `2025`). The shortlist is chosen from bills an Assembly member prime-sponsored. Senate bills that no Assembly member prime-sponsored are not in the file. See `data/new-york/SOURCES.md`.
+
+The Assembly directory does not print party. Party labels on Assembly rows come from the Open States people dataset, matched by district. The Senate website returned a bot challenge here, and the Open Legislation API requires a key. Senate roster rows are the current upper-chamber people in that dataset whose links cite `nysenate.gov`. Birth dates and non-official profiles are not copied. Senate District 12 has no current row in that dataset, so the seat is left empty rather than filled in.
+
+ZIP districts use the same Census relationship files. The Assembly directory does not list counties. Member floor votes are not on the summary view, so this file has no `votes` rows. There is no scorecards page and no vetoes page. This v1 is a curated shortlist, not every bill filed.
+
+Import: `npm run import:new-york` writes the snapshot and ZIP file. Seeding inserts New York only.
+
+## Texas
+
+Official record: Texas Legislature Online, https://capitol.texas.gov/, the House directory at https://house.texas.gov/members, and the Senate directory at https://senate.texas.gov/members.php. Bills are the filed House and Senate bills for the 90th Legislature regular session (`LegSess=90R`), from the filed-bill reports dated November 20, 2026. The caption, authors, the Senate sponsor when the report lists one, and the last action come from that report. See `data/texas/SOURCES.md`.
+
+The 90th regular session convenes in January 2027. This file is not the adjourned 89th regular session and not a called session. The roster is the sitting directory: House members the House site marks active, and senators other than District 22, which senate.texas.gov lists as vacant. House districts 1, 93, and 98 are not in the active list. Those people are not invented. The directories do not print party, email, or phone.
+
+ZIP districts use the Census relationship files. Counties are not on these directories. The filed-bill report does not include yea and nay roll calls, so this file has no `votes` rows. There is no scorecards page and no vetoes page. This v1 is a curated shortlist, not every bill filed.
+
+Import: `npm run import:texas` writes the snapshot and ZIP file. Seeding inserts Texas only.
 
 ## Hot Topics
 

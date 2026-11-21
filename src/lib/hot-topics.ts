@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, notInArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { hotTopics } from "@/db/schema";
-import { STATES } from "@/lib/states";
+import { clock, isLiveSlug } from "@/lib/launch";
 import { TOPICS } from "@/lib/topics";
 
 export type HotTopicInput = {
@@ -19,7 +19,6 @@ export type HotTopicRecord = HotTopicInput & {
   createdAt: string;
 };
 
-const STATE_SLUGS = new Set(STATES.map((state) => state.slug));
 const TOPIC_SLUGS = new Set<string>(TOPICS.map((topic) => topic.slug));
 
 export function isIsoDate(value: string): boolean {
@@ -29,20 +28,23 @@ export function isIsoDate(value: string): boolean {
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
 
-export function topicOrBillPath(value: string): boolean {
-  const match = value.match(/^\/([a-z]+)\/(topics|bills)\/([a-z0-9-]{1,80})$/);
+export function topicOrBillPath(value: string, now = clock()): boolean {
+  const match = value.match(/^\/([a-z-]+)\/(topics|bills)\/([a-z0-9-]{1,80})$/);
   if (!match) return false;
   const [, state, kind, slug] = match;
-  if (!STATE_SLUGS.has(state as (typeof STATES)[number]["slug"])) return false;
+  if (!isLiveSlug(state, now)) return false;
   if (kind === "topics") return TOPIC_SLUGS.has(slug);
   return true;
 }
 
-export function parseHotTopicReplace(payload: unknown): { ok: true; state: string; weekStart: string; topics: HotTopicInput[] } | { ok: false; error: string } {
+export function parseHotTopicReplace(
+  payload: unknown,
+  now = clock(),
+): { ok: true; state: string; weekStart: string; topics: HotTopicInput[] } | { ok: false; error: string } {
   if (!payload || typeof payload !== "object") return { ok: false, error: "Send a JSON object." };
   const body = payload as { state?: unknown; weekStart?: unknown; topics?: unknown };
   const state = typeof body.state === "string" ? body.state.trim().toLowerCase() : "";
-  if (!STATE_SLUGS.has(state as (typeof STATES)[number]["slug"])) {
+  if (!isLiveSlug(state, now)) {
     return { ok: false, error: "state must be a live state slug." };
   }
   const weekStart = typeof body.weekStart === "string" ? body.weekStart.trim() : "";
@@ -68,7 +70,7 @@ export function parseHotTopicReplace(payload: unknown): { ok: true; state: strin
     if (row.link != null && row.link !== "") {
       if (typeof row.link !== "string") return { ok: false, error: "link must be a site path." };
       link = row.link.trim();
-      if (!topicOrBillPath(link)) {
+      if (!topicOrBillPath(link, now)) {
         return { ok: false, error: "link must be a topic or bill path on this site, such as /georgia/topics/taxes." };
       }
     }

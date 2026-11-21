@@ -3,7 +3,7 @@ import { StatusBanner } from "@/components/chrome";
 import { latestHotTopicsByState, type HotTopicRecord } from "@/lib/hot-topics";
 import { logError } from "@/lib/errors";
 import { formatDate } from "@/lib/site";
-import { STATES } from "@/lib/states";
+import { liveStates } from "@/lib/launch";
 
 function linkLabel(href: string): string {
   return href.includes("/bills/") ? "See the bill" : "See the topic";
@@ -51,7 +51,7 @@ export async function HotTopicsPage() {
         <h1 className="font-serif text-4xl leading-tight text-navy">Hot Topics</h1>
         <p className="max-w-2xl text-lg text-ink">Based on public posts on X this week.</p>
       </section>
-      {STATES.map((state) => {
+      {liveStates().map((state) => {
         const week = byState.get(state.slug);
         return (
           <section key={state.slug} aria-labelledby={`hot-${state.slug}`}>

@@ -10,7 +10,7 @@ import { isPlaceholderFrom, isUnset } from "../src/lib/email-address";
 import { getEmailSponsor, getKeyBills, getRecentBills } from "../src/lib/queries";
 import { ensureAudienceSetup, syncSignupStates, topicName } from "../src/lib/resend-audience";
 import { formatDate, siteUrl } from "../src/lib/site";
-import { STATES } from "../src/lib/states";
+import { liveStates } from "../src/lib/launch";
 
 loadEnv({ path: ".env.local" });
 loadEnv({ path: ".env" });
@@ -20,7 +20,7 @@ async function main() {
   const origin = siteUrl();
   const issueDate = formatDate(new Date().toISOString());
   const sections: WeeklyStateSection[] = [];
-  for (const state of STATES) {
+  for (const state of liveStates()) {
     const bills = state.fullTime ? await getRecentBills(state.id, 5) : await getKeyBills(state.id, 5);
     sections.push({
       slug: state.slug,

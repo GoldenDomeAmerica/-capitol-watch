@@ -14,6 +14,10 @@
     "import:georgia": "tsx scripts/import-georgia.ts",
     "import:pennsylvania": "tsx scripts/import-pennsylvania.ts",
     "import:arizona": "tsx scripts/import-arizona.ts",
+    "import:idaho": "python3 scripts/build_state_snapshots.py idaho",
+    "import:new-york": "python3 scripts/build_state_snapshots.py new-york",
+    "import:texas": "python3 scripts/build_state_snapshots.py texas",
+    "test": "tsx --test src/lib/launch.test.ts",
     "newsletter": "tsx scripts/build-newsletter.ts",
     "email": "email dev --dir emails --port 3000"
   },

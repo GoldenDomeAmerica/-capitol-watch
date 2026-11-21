@@ -2,7 +2,8 @@ import { Resend } from "resend";
 import { audienceStates } from "@/lib/audience";
 import { logError } from "@/lib/errors";
 import { isUnset } from "@/lib/email-address";
-import { STATES, type StateSlug } from "@/lib/states";
+import { liveStates } from "@/lib/launch";
+import { type StateSlug } from "@/lib/states";
 
 export const STATE_PROPERTY_KEY = "acw_state";
 
@@ -10,13 +11,19 @@ export function topicName(stateName: string): string {
   return `American Capitol Watch: ${stateName}`.slice(0, 50);
 }
 
-export type StateTopicIds = Record<StateSlug, string>;
+export type StateTopicIds = Partial<Record<StateSlug, string>>;
 
 function topicSubscriptions(chosen: StateSlug[], topics: StateTopicIds) {
-  return STATES.map((state) => ({
-    id: topics[state.slug],
-    subscription: chosen.includes(state.slug) ? ("opt_in" as const) : ("opt_out" as const),
-  }));
+  return liveStates().flatMap((state) => {
+    const id = topics[state.slug];
+    if (!id) return [];
+    return [
+      {
+        id,
+        subscription: chosen.includes(state.slug) ? ("opt_in" as const) : ("opt_out" as const),
+      },
+    ];
+  });
 }
 
 export async function ensureAudienceSetup(
@@ -39,7 +46,7 @@ export async function ensureAudienceSetup(
   const listed = await resend.topics.list();
   if (listed.error) return { ok: false, reason: listed.error.message };
   const topics = {} as StateTopicIds;
-  for (const state of STATES) {
+  for (const state of liveStates()) {
     const name = topicName(state.name);
     const found = listed.data?.data?.find((topic) => topic.name === name);
     if (found) {

@@ -37,7 +37,7 @@ function run(command: string, args: string[], env: NodeJS.ProcessEnv): Promise<v
   });
 }
 
-async function billCounts(url: string): Promise<{ ga: number; pa: number; az: number }> {
+async function billCounts(url: string): Promise<{ ga: number; pa: number; az: number; id: number; ny: number; tx: number }> {
   const local = /localhost|127\.0\.0\.1/.test(url);
   const sql = postgres(url, {
     max: 1,
@@ -49,11 +49,14 @@ async function billCounts(url: string): Promise<{ ga: number; pa: number; az: nu
     const rows = await sql<{ state_id: string; n: number }[]>`
       select state_id, count(*)::int as n from bills group by state_id
     `;
-    const counts = { ga: 0, pa: 0, az: 0 };
+    const counts = { ga: 0, pa: 0, az: 0, id: 0, ny: 0, tx: 0 };
     for (const row of rows) {
       if (row.state_id === "ga") counts.ga = Number(row.n);
       if (row.state_id === "pa") counts.pa = Number(row.n);
       if (row.state_id === "az") counts.az = Number(row.n);
+      if (row.state_id === "id") counts.id = Number(row.n);
+      if (row.state_id === "ny") counts.ny = Number(row.n);
+      if (row.state_id === "tx") counts.tx = Number(row.n);
     }
     return counts;
   } finally {
@@ -92,6 +95,19 @@ async function main() {
       await run(bin("tsx"), ["scripts/seed-arizona.ts"], migrateEnv);
     } else {
       console.log(`Arizona already has ${counts.az} bills. Leaving those rows in place.`);
+    }
+    const scheduled = [
+      { count: counts.id, slug: "idaho", name: "Idaho" },
+      { count: counts.ny, slug: "new-york", name: "New York" },
+      { count: counts.tx, slug: "texas", name: "Texas" },
+    ];
+    for (const state of scheduled) {
+      if (state.count === 0) {
+        console.log(`No ${state.name} bills yet. Seeding ${state.name} data.`);
+        await run(bin("tsx"), ["scripts/seed-scheduled.ts", state.slug], migrateEnv);
+      } else {
+        console.log(`${state.name} already has ${state.count} bills. Leaving those rows in place.`);
+      }
     }
   }
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { adminGuard } from "@/lib/admin";
 import { logError } from "@/lib/errors";
 import { isIsoDate, listHotTopics, parseHotTopicReplace, replaceHotTopics } from "@/lib/hot-topics";
-import { stateBySlug } from "@/lib/states";
+import { isLiveSlug } from "@/lib/launch";
 import { getDb } from "@/db";
 
 export async function GET(request: Request) {
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const state = url.searchParams.get("state")?.trim().toLowerCase() || "";
   const weekStart = url.searchParams.get("weekStart")?.trim() || "";
-  if (state && !stateBySlug(state)) {
+  if (state && !isLiveSlug(state)) {
     return NextResponse.json({ error: "state must be a live state slug." }, { status: 400 });
   }
   if (weekStart && !isIsoDate(weekStart)) {

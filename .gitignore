@@ -36,6 +36,8 @@ yarn-error.log*
 
 # downloaded legislature dumps (the curated snapshot is committed)
 /data/cache/
+__pycache__/
+*.pyc
 /newsletter-out/
 
 # vercel

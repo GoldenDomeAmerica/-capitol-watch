@@ -1,9 +1,9 @@
-export type StateSlug = "georgia" | "pennsylvania" | "arizona";
+export type StateSlug = "georgia" | "pennsylvania" | "arizona" | "idaho" | "new-york" | "texas";
 
 export type CreditStyle = "compiled" | "public-as-is" | "legislature";
 
 export type StateSection = {
-  id: "ga" | "pa" | "az";
+  id: "ga" | "pa" | "az" | "id" | "ny" | "tx";
   slug: StateSlug;
   name: string;
   legislatureName: string;
@@ -26,6 +26,11 @@ export type StateSection = {
   searchPlaceholder?: string;
   blurb: string;
   sessionNote: string;
+  /**
+   * When the section becomes public. Null means it is already live.
+   * An ISO timestamp with a numeric offset, compared at request time.
+   */
+  launchesAt: string | null;
 };
 
 // Launched sections are this list. Pages do not read the states table to decide what to show.
@@ -51,6 +56,7 @@ export const STATES: StateSection[] = [
     blurb: "Bills, legislators, and scorecard links for the General Assembly.",
     sessionNote:
       "The 2025–2026 regular session has adjourned. Georgia's next regular session opens on the second Monday in January (January 11, 2027).",
+    launchesAt: null,
   },
   {
     id: "pa",
@@ -74,6 +80,7 @@ export const STATES: StateSection[] = [
     blurb: "A full-time legislature. Recent activity, the roster, and ZIP or address lookup.",
     sessionNote:
       "Pennsylvania's General Assembly is a full-time legislature. Dates below are recent activity, not a short session window.",
+    launchesAt: null,
   },
   {
     id: "az",
@@ -97,6 +104,79 @@ export const STATES: StateSection[] = [
     blurb: "Bills from the 2025 and 2026 sessions, vetoes by Gov. Hobbs, and the sitting roster.",
     sessionNote:
       "This file covers the 2025 first regular session and the 2026 second regular session. Arizona's next regular session opens January 11, 2027.",
+    launchesAt: null,
+  },
+  {
+    id: "id",
+    slug: "idaho",
+    name: "Idaho",
+    legislatureName: "Idaho Legislature",
+    creditStyle: "legislature",
+    sourceDetail: "2026 legislation index, bill pages, and member directory",
+    fullTime: false,
+    scorecards: false,
+    vetoes: false,
+    sharedDistrict: true,
+    officialSite: "https://legislature.idaho.gov/",
+    billLinkLabel: "Official bill page at legislature.idaho.gov",
+    textLinkLabel: "Official bill text",
+    summaryNote:
+      "Taken from the official description on the legislature's bill page, or the short title on the legislation index when the description was not on that page. This is not legal advice.",
+    censusState: "Idaho",
+    addressPlaceholder: "123 Main St, Boise, ID",
+    searchPlaceholder: "Search bills, such as sales tax or H0489",
+    blurb: "A shortlist from the 2026 regular session, plus the House and Senate roster.",
+    sessionNote:
+      "This file covers the 2026 regular session of the 68th Idaho Legislature, which convened January 12, 2026. House and Senate share a district number. House seats are labeled Seat A and Seat B.",
+    launchesAt: "2026-11-21T07:00:00-05:00",
+  },
+  {
+    id: "ny",
+    slug: "new-york",
+    name: "New York",
+    legislatureName: "New York State Legislature",
+    creditStyle: "legislature",
+    sourceDetail: "Assembly bill pages and member directory",
+    fullTime: false,
+    scorecards: false,
+    vetoes: false,
+    sharedDistrict: false,
+    officialSite: "https://nyassembly.gov/",
+    billLinkLabel: "Official bill page at nyassembly.gov",
+    textLinkLabel: "Official bill text",
+    summaryNote:
+      "Taken from the official summary on the New York State Assembly bill page. This is not legal advice.",
+    censusState: "New York",
+    addressPlaceholder: "123 Main St, Albany, NY",
+    searchPlaceholder: "Search bills, such as rent or A100",
+    blurb: "Assembly bills from the 2025–2026 session, and the Assembly and Senate roster.",
+    sessionNote:
+      "This file covers the 2025–2026 legislative session, which New York names by the opening year, 2025. The tracked bills are ones an Assembly member prime-sponsored.",
+    launchesAt: "2026-11-23T07:00:00-05:00",
+  },
+  {
+    id: "tx",
+    slug: "texas",
+    name: "Texas",
+    legislatureName: "Texas Legislature",
+    creditStyle: "public-as-is",
+    sourceDetail: "filed-bill reports and member directories",
+    fullTime: false,
+    scorecards: false,
+    vetoes: false,
+    sharedDistrict: false,
+    officialSite: "https://capitol.texas.gov/",
+    billLinkLabel: "Official bill history at capitol.texas.gov",
+    textLinkLabel: "Official text",
+    summaryNote:
+      "Taken from the official caption on the Texas Legislature Online filed-bill report. This is not legal advice.",
+    censusState: "Texas",
+    addressPlaceholder: "123 Main St, Austin, TX",
+    searchPlaceholder: "Search bills, such as schools or HB 101",
+    blurb: "Bills filed for the 90th regular session, and the current House and Senate roster.",
+    sessionNote:
+      "This file covers bills filed for the 90th Legislature regular session. The regular session convenes in January 2027. The roster is the sitting directory published for the 89th Legislature.",
+    launchesAt: "2026-11-25T07:00:00-05:00",
   },
 ];
 
@@ -108,8 +188,8 @@ export function stateById(id: string): StateSection | null {
   return STATES.find((state) => state.id === id) ?? null;
 }
 
-export function stateListLabel(): string {
-  const names = STATES.map((state) => state.name);
+export function stateListLabel(states: { name: string }[]): string {
+  const names = states.map((state) => state.name);
   if (names.length < 2) return names[0] ?? "";
   if (names.length === 2) return `${names[0]} and ${names[1]}`;
   return `${names.slice(0, -1).join(", ")}, and ${names.at(-1)}`;

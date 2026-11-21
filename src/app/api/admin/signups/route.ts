@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { adminGuard, listSignups, signupCountsByState } from "@/lib/admin";
 import { logError } from "@/lib/errors";
-import { stateBySlug } from "@/lib/states";
+import { isLiveSlug } from "@/lib/launch";
 
 export async function GET(request: Request) {
   const denied = adminGuard(request);
   if (denied) return denied;
   const state = new URL(request.url).searchParams.get("state")?.trim() || "";
-  if (state && !stateBySlug(state)) {
+  if (state && !isLiveSlug(state)) {
     return NextResponse.json({ error: "Unknown state." }, { status: 400 });
   }
   try {

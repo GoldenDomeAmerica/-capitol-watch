@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { GovernorAction } from "@/db/schema";
+import { displayBillSummary, PLAIN_SUMMARY_UNAVAILABLE } from "@/lib/plain-summaries";
 import type { BillCard } from "@/lib/queries";
 import { chamberLabel, formatDate } from "@/lib/site";
 
@@ -11,6 +12,7 @@ export function hobbsVetoBadge(stateSlug: string, action: GovernorAction | null 
 
 export function BillCardView({ bill, stateSlug }: { bill: BillCard; stateSlug: string }) {
   const veto = hobbsVetoBadge(stateSlug, bill.governorAction);
+  const summary = displayBillSummary(stateSlug, bill.slug, bill.summary);
   return (
     <article className="rounded-lg border border-line bg-paper p-4">
       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
@@ -24,7 +26,15 @@ export function BillCardView({ bill, stateSlug }: { bill: BillCard; stateSlug: s
           {bill.title}
         </Link>
       </h3>
-      <p className="mt-2 text-sm leading-relaxed">{bill.summary}</p>
+      <p
+        className={
+          summary === PLAIN_SUMMARY_UNAVAILABLE
+            ? "mt-2 text-sm leading-relaxed text-muted"
+            : "mt-2 text-sm leading-relaxed"
+        }
+      >
+        {summary}
+      </p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {bill.topics.map((topic) => (
           <Link

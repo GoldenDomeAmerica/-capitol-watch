@@ -8,6 +8,7 @@ import { databaseConfigured } from "@/db";
 import type { BillAction, GovernorAction, PassageVote } from "@/db/schema";
 import { logError } from "@/lib/errors";
 import { countyNames, districtsForAddress, districtsForZip, type DistrictHit } from "@/lib/find-legislators";
+import { displayBillSummary, PLAIN_SUMMARY_UNAVAILABLE } from "@/lib/plain-summaries";
 import { getBill, getLegislator, getVetoedBills, searchBills, searchLegislators, type LegislatorCard } from "@/lib/queries";
 import { chamberLabel, formatDate, partyShort } from "@/lib/site";
 import { isStateLive, liveStates } from "@/lib/launch";
@@ -34,7 +35,7 @@ export async function billMetadata(stateSlug: StateSlug, slug: string): Promise<
     if (!bill) return { title: "Bill not found" };
     return {
       title: `${bill.identifier}: ${bill.title}`,
-      description: bill.summary.slice(0, 180),
+      description: displayBillSummary(state.slug, slug, bill.summary).slice(0, 180),
     };
   } catch {
     return { title: "Bill" };
@@ -57,6 +58,7 @@ export async function BillDetailPage({ stateSlug, slug }: { stateSlug: StateSlug
   if (failed) return <StatusBanner>This bill could not be loaded.</StatusBanner>;
   if (!bill) notFound();
   const veto = hobbsVetoBadge(state.slug, bill.governorAction);
+  const summary = displayBillSummary(state.slug, bill.slug, bill.summary);
   return (
     <article className="space-y-6">
       <p className="text-xs font-semibold uppercase tracking-wide text-crimson">
@@ -67,7 +69,15 @@ export async function BillDetailPage({ stateSlug, slug }: { stateSlug: StateSlug
       {state.fullTime ? <p className="text-sm text-muted">{state.sessionNote}</p> : null}
       <section className="rounded-lg border border-line bg-paper p-4">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Plain-English summary</h2>
-        <p className="mt-2 text-base leading-relaxed">{bill.summary}</p>
+        <p
+          className={
+            summary === PLAIN_SUMMARY_UNAVAILABLE
+              ? "mt-2 text-base leading-relaxed text-muted"
+              : "mt-2 text-base leading-relaxed"
+          }
+        >
+          {summary}
+        </p>
         <p className="mt-2 text-xs text-muted">{state.summaryNote}</p>
       </section>
       {bill.officialSummary &&
@@ -250,7 +260,7 @@ export async function BillsIndexPage({
   let bills;
   let failed = false;
   try {
-    bills = await searchBills({ stateId: state.id, q, topic: topicInfo?.slug });
+    bills = await searchBills({ stateId: state.id, stateSlug: state.slug, q, topic: topicInfo?.slug });
   } catch (error) {
     await logError(error, `/${state.slug}/bills`);
     failed = true;
@@ -346,7 +356,7 @@ export async function TopicPage({
   let bills;
   let failed = false;
   try {
-    bills = await searchBills({ stateId: state.id, q, topic: topic.slug });
+    bills = await searchBills({ stateId: state.id, stateSlug: state.slug, q, topic: topic.slug });
   } catch (error) {
     await logError(error, `/${state.slug}/topics/${slug}`);
     failed = true;

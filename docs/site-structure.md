@@ -15,8 +15,8 @@ Unknown URLs use `src/app/not-found.tsx`.
 | `/` | State cards from `STATES`, then the newsletter signup form. |
 | `/hot-topics` | Latest stored week of hot topics for each live state, or an empty line when that state has none. |
 | `/[state]` | Landing page for a slug in `STATES` that has launched: overview, links to bills, legislators, topics, and scorecards or vetoes when that state flags them. `dynamicParams` is false, so any other slug is a 404. A configured state before its launch time is also a 404. Static state folders still own the child routes below. Idaho, New York, and Texas have no scorecards page and no vetoes page. |
-| `/{state}/bills` | Searchable bill list for that state. |
-| `/{state}/bills/{slug}` | One bill: summary, sponsors, actions, official links. Georgia's folder param is named `[id]`; Pennsylvania and Arizona use `[slug]`. The value is the bill slug. |
+| `/{state}/bills` | Searchable bill list for that state. When `src/lib/plain-summaries.ts` has that state and bill slug, the card shows that plain-language summary. Otherwise the card shows the summary stored on the bill. A search also matches those plain-language sentences. |
+| `/{state}/bills/{slug}` | One bill: summary, sponsors, actions, official links. The plain-language summary comes from the same file when the bill is listed there. Georgia's folder param is named `[id]`; Pennsylvania and Arizona use `[slug]`. The value is the bill slug. |
 | `/{state}/legislators` | Roster search by name, district, chamber, county, ZIP, or street address. |
 | `/{state}/legislators/{slug}` | One legislator. Georgia's folder param is named `[id]`. |
 | `/{state}/topics/{slug}` | Bills tagged with one topic. Slugs are `taxes`, `guns`, `schools`, `elections`, `property-rights`, `energy`, `abortion`, and `border`, from `src/lib/topics.ts`. The heading leads with "Hot Topics" and does not prefix the state name. |
@@ -76,7 +76,7 @@ Preview and production share one database. New SQL must be additive. No `DROP`, 
 | --- | --- |
 | `states` | State ids. The public site does not use this table to decide which sections exist. |
 | `topics` | Topic ids. Public topic pages use `src/lib/topics.ts`. |
-| `bills` | Tracked bills, one row per state and slug. |
+| `bills` | Tracked bills, one row per state and slug. Plain-language display text, when a bill has one, lives in `src/lib/plain-summaries.ts`, not in a new column. |
 | `bill_topics` | Bill-to-topic join. |
 | `legislators` | Roster rows, including some former members kept so votes resolve. |
 | `bill_sponsors` | Sponsors named on a bill. |

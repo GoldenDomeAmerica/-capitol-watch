@@ -8,7 +8,7 @@ import { databaseConfigured } from "@/db";
 import type { BillAction, GovernorAction, PassageVote } from "@/db/schema";
 import { logError } from "@/lib/errors";
 import { countyNames, districtsForAddress, districtsForZip, type DistrictHit } from "@/lib/find-legislators";
-import { displayBillSummary, PLAIN_SUMMARY_UNAVAILABLE } from "@/lib/plain-summaries";
+import { displayBillSummary, displayBillTitle, PLAIN_SUMMARY_UNAVAILABLE } from "@/lib/plain-summaries";
 import { getBill, getLegislator, getVetoedBills, searchBills, searchLegislators, type LegislatorCard } from "@/lib/queries";
 import { chamberLabel, formatDate, partyShort } from "@/lib/site";
 import { isStateLive, liveStates } from "@/lib/launch";
@@ -34,7 +34,7 @@ export async function billMetadata(stateSlug: StateSlug, slug: string): Promise<
     const bill = await getBill(state.id, slug);
     if (!bill) return { title: "Bill not found" };
     return {
-      title: `${bill.identifier}: ${bill.title}`,
+      title: `${bill.identifier}: ${displayBillTitle(state.slug, slug, bill.title)}`,
       description: displayBillSummary(state.slug, slug, bill.summary).slice(0, 180),
     };
   } catch {
@@ -59,12 +59,13 @@ export async function BillDetailPage({ stateSlug, slug }: { stateSlug: StateSlug
   if (!bill) notFound();
   const veto = hobbsVetoBadge(state.slug, bill.governorAction);
   const summary = displayBillSummary(state.slug, bill.slug, bill.summary);
+  const title = displayBillTitle(state.slug, bill.slug, bill.title);
   return (
     <article className="space-y-6">
       <p className="text-xs font-semibold uppercase tracking-wide text-crimson">
         {state.name} · {bill.identifier} · {chamberLabel(bill.chamber)} · {bill.sessionName}
       </p>
-      <h1 className="font-serif text-3xl leading-tight text-navy sm:text-4xl">{bill.title}</h1>
+      <h1 className="font-serif text-3xl leading-tight text-navy sm:text-4xl">{title}</h1>
       {veto ? <p className="inline-flex rounded-full bg-crimson px-3 py-1 text-sm font-semibold text-white">{veto}</p> : null}
       {state.fullTime ? <p className="text-sm text-muted">{state.sessionNote}</p> : null}
       <section className="rounded-lg border border-line bg-paper p-4">
@@ -728,7 +729,7 @@ export async function LegislatorDetailPage({ stateSlug, slug }: { stateSlug: Sta
                 <Link className="font-semibold text-navy underline" href={`/${state.slug}/bills/${bill.slug}`}>
                   {bill.identifier}
                 </Link>{" "}
-                {bill.title}
+                {displayBillTitle(state.slug, bill.slug, bill.title)}
                 {bill.isPrimary ? " · primary sponsor" : ""}
                 {bill.status ? ` · ${bill.status}` : ""}
               </li>
@@ -753,7 +754,9 @@ export async function LegislatorDetailPage({ stateSlug, slug }: { stateSlug: Sta
                 ) : (
                   vote.billIdentifier
                 )}{" "}
-                {vote.billTitle ? `· ${vote.billTitle}` : ""}
+                {vote.billTitle
+                  ? `· ${displayBillTitle(state.slug, vote.billSlug ?? "", vote.billTitle)}`
+                  : ""}
                 <span className="block text-muted">
                   {vote.motion || "Vote"} · {vote.result || "result not listed"} · {formatDate(vote.voteDate)}
                   {vote.yea != null ? ` · ${vote.yea}–${vote.nay ?? "?"}` : ""}

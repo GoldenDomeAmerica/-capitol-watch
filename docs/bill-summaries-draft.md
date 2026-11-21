@@ -54,4 +54,4 @@ Each sentence is rewritten from the official description on that bill's page at 
 - **S1389** Polling places, liability: This bill would limit legal liability for owners of property used as a polling place. It would affect those property owners.
 - **S1391** Property rights protection, trailer: Summary not available yet
 - **S1430** Firearms regulations, preemption: This bill would change the state law that limits local firearm rules, add a penalty, and allow a lawsuit. It would affect local governments and people who bring those cases.
-- **S1441** Memorandum of agreemnt, immigration: This bill would add rules for law enforcement agencies that make a written agreement with Immigration and Customs Enforcement. It would affect those agencies.
+- **S1441** Memorandum of agreement, immigration: This bill would add rules for law enforcement agencies that make a written agreement with Immigration and Customs Enforcement. It would affect those agencies.

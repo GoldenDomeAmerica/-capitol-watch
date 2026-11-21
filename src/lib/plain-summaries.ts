@@ -388,7 +388,7 @@ export const PLAIN_BILL_SUMMARIES: PlainBillSummary[] = [
     state: "idaho",
     slug: "s1441",
     identifier: "S1441",
-    title: "Memorandum of agreemnt, immigration",
+    title: "Memorandum of agreement, immigration",
     summary:
       "This bill would add rules for law enforcement agencies that make a written agreement with Immigration and Customs Enforcement. It would affect those agencies.",
   },
@@ -405,6 +405,11 @@ export function plainBillSummary(stateSlug: string, slug: string): PlainBillSumm
 /** Summary to show. Stored bill text is used when this file has no entry for that state and slug. */
 export function displayBillSummary(stateSlug: string, slug: string, storedSummary: string): string {
   return plainBillSummary(stateSlug, slug)?.summary ?? storedSummary;
+}
+
+/** Short title to show. A listed bill can correct a spelling error in the stored title. */
+export function displayBillTitle(stateSlug: string, slug: string, storedTitle: string): string {
+  return plainBillSummary(stateSlug, slug)?.title ?? storedTitle;
 }
 
 /** Slugs whose plain summary contains the query. The unavailable sentence is not searchable. */

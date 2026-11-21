@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { GovernorAction } from "@/db/schema";
-import { displayBillSummary, PLAIN_SUMMARY_UNAVAILABLE } from "@/lib/plain-summaries";
+import { displayBillSummary, displayBillTitle, PLAIN_SUMMARY_UNAVAILABLE } from "@/lib/plain-summaries";
 import type { BillCard } from "@/lib/queries";
 import { chamberLabel, formatDate } from "@/lib/site";
 
@@ -13,6 +13,7 @@ export function hobbsVetoBadge(stateSlug: string, action: GovernorAction | null 
 export function BillCardView({ bill, stateSlug }: { bill: BillCard; stateSlug: string }) {
   const veto = hobbsVetoBadge(stateSlug, bill.governorAction);
   const summary = displayBillSummary(stateSlug, bill.slug, bill.summary);
+  const title = displayBillTitle(stateSlug, bill.slug, bill.title);
   return (
     <article className="rounded-lg border border-line bg-paper p-4">
       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
@@ -23,7 +24,7 @@ export function BillCardView({ bill, stateSlug }: { bill: BillCard; stateSlug: s
       </div>
       <h3 className="mt-1 font-serif text-xl leading-snug text-navy">
         <Link href={`/${stateSlug}/bills/${bill.slug}`} className="hover:text-crimson">
-          {bill.title}
+          {title}
         </Link>
       </h3>
       <p

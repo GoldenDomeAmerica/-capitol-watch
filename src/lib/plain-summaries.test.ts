@@ -51,7 +51,8 @@ test("every Idaho bill in the snapshot has one plain summary, and no extra Idaho
     const row = drafted.find((item) => item.slug === bill.slug);
     assert.ok(row);
     assert.equal(row.identifier, bill.identifier);
-    assert.equal(row.title, bill.title);
+    const title = bill.slug === "s1441" ? "Memorandum of agreement, immigration" : bill.title;
+    assert.equal(row.title, title);
   }
 });
 
@@ -100,4 +101,28 @@ test("an Idaho bill card shows the plain summary, not the stored caption", () =>
 
   const georgia = card("georgia", "hb-1", "Stored Georgia summary.");
   assert.match(georgia, /Stored Georgia summary\./);
+  assert.match(georgia, /Stored title/);
+
+  const corrected = renderToStaticMarkup(
+    createElement(BillCardView, {
+      stateSlug: "idaho",
+      bill: {
+        id: "id-s1441",
+        slug: "s1441",
+        identifier: "S1441",
+        title: "Memorandum of agreemnt, immigration",
+        summary: "Official caption: a status line.",
+        status: "In committee",
+        lastAction: null,
+        lastActionDate: null,
+        chamber: "senate",
+        sessionName: "2026",
+        featured: false,
+        governorAction: null,
+        topics: [],
+      },
+    }),
+  );
+  assert.match(corrected, /Memorandum of agreement, immigration/);
+  assert.doesNotMatch(corrected, /agreemnt/);
 });

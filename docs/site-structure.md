@@ -15,8 +15,8 @@ Unknown URLs use `src/app/not-found.tsx`.
 | `/` | State cards from `STATES`, then the newsletter signup form. |
 | `/hot-topics` | Latest stored week of hot topics for each live state, or an empty line when that state has none. |
 | `/[state]` | Landing page for a slug in `STATES` that has launched: overview, links to bills, legislators, topics, and scorecards or vetoes when that state flags them. `dynamicParams` is false, so any other slug is a 404. A configured state before its launch time is also a 404. Static state folders still own the child routes below. Idaho, New York, and Texas have no scorecards page and no vetoes page. |
-| `/{state}/bills` | Searchable bill list for that state. When `src/lib/plain-summaries.ts` has that state and bill slug, the card shows that plain-language summary. Otherwise the card shows the summary stored on the bill. A search also matches those plain-language sentences. |
-| `/{state}/bills/{slug}` | One bill: summary, sponsors, actions, official links. The plain-language summary comes from the same file when the bill is listed there. Georgia's folder param is named `[id]`; Pennsylvania and Arizona use `[slug]`. The value is the bill slug. |
+| `/{state}/bills` | Searchable bill list for that state. `BillCardView` in `src/components/bills.tsx` renders each card. When `src/lib/plain-summaries.ts` has that state and bill slug, the card shows that file's short title and plain-language summary. Otherwise it shows the title and summary stored on the bill. A search also matches those plain-language sentences. The same card is used on topic pages and on `/arizona/vetoes`. |
+| `/{state}/bills/{slug}` | One bill: summary, sponsors, actions, official links. `BillDetailPage` shows the short title and the "Plain-English summary" from `src/lib/plain-summaries.ts` when the bill is listed there. The page metadata uses the same title and summary. Georgia's folder param is named `[id]`; Pennsylvania and Arizona use `[slug]`. The value is the bill slug. |
 | `/{state}/legislators` | Roster search by name, district, chamber, county, ZIP, or street address. |
 | `/{state}/legislators/{slug}` | One legislator. Georgia's folder param is named `[id]`. |
 | `/{state}/topics/{slug}` | Bills tagged with one topic. Slugs are `taxes`, `guns`, `schools`, `elections`, `property-rights`, `energy`, `abortion`, and `border`, from `src/lib/topics.ts`. The heading leads with "Hot Topics" and does not prefix the state name. |
@@ -76,7 +76,7 @@ Preview and production share one database. New SQL must be additive. No `DROP`, 
 | --- | --- |
 | `states` | State ids. The public site does not use this table to decide which sections exist. |
 | `topics` | Topic ids. Public topic pages use `src/lib/topics.ts`. |
-| `bills` | Tracked bills, one row per state and slug. Plain-language display text, when a bill has one, lives in `src/lib/plain-summaries.ts`, not in a new column. |
+| `bills` | Tracked bills, one row per state and slug. Plain-language display text is not a column. `src/lib/plain-summaries.ts` holds one row per drafted bill (`state`, `slug`, `identifier`, `title`, `summary`). `displayBillSummary` and `displayBillTitle` read it. A missing row keeps the stored title and summary. The summary sentence `Summary not available yet` means the official description did not say what the bill would do. Idaho is the only state in the file. S1441's stored short title misspells "agreement"; the file's title is the spelling the pages show. |
 | `bill_topics` | Bill-to-topic join. |
 | `legislators` | Roster rows, including some former members kept so votes resolve. |
 | `bill_sponsors` | Sponsors named on a bill. |

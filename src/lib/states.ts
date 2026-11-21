@@ -121,7 +121,7 @@ export const STATES: StateSection[] = [
     billLinkLabel: "Official bill page at legislature.idaho.gov",
     textLinkLabel: "Official bill text",
     summaryNote:
-      "Taken from the official description on the legislature's bill page, or the short title on the legislation index when the description was not on that page. This is not legal advice.",
+      "Rewritten in plain language from the official description on the legislature's bill page. If that description does not say what the bill would do, the page says a summary is not available yet. This is not legal advice.",
     censusState: "Idaho",
     addressPlaceholder: "123 Main St, Boise, ID",
     searchPlaceholder: "Search bills, such as sales tax or H0489",

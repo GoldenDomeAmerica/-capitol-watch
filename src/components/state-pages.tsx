@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BillResearchSections } from "@/components/bill-research";
 import { BillCardView, BillSearch, hobbsVetoBadge } from "@/components/bills";
 import { StatusBanner } from "@/components/chrome";
 import { SignupForm } from "@/components/signup-form";
@@ -8,6 +9,7 @@ import { databaseConfigured } from "@/db";
 import type { BillAction, GovernorAction, PassageVote } from "@/db/schema";
 import { logError } from "@/lib/errors";
 import { countyNames, districtsForAddress, districtsForZip, type DistrictHit } from "@/lib/find-legislators";
+import { billResearchFor } from "@/lib/bill-research";
 import { displayBillSummary, displayBillTitle, PLAIN_SUMMARY_UNAVAILABLE } from "@/lib/plain-summaries";
 import { getBill, getLegislator, getVetoedBills, searchBills, searchLegislators, type LegislatorCard } from "@/lib/queries";
 import { chamberLabel, formatDate, partyShort } from "@/lib/site";
@@ -33,9 +35,10 @@ export async function billMetadata(stateSlug: StateSlug, slug: string): Promise<
   try {
     const bill = await getBill(state.id, slug);
     if (!bill) return { title: "Bill not found" };
+    const research = billResearchFor(state.slug, slug);
     return {
       title: `${bill.identifier}: ${displayBillTitle(state.slug, slug, bill.title)}`,
-      description: displayBillSummary(state.slug, slug, bill.summary).slice(0, 180),
+      description: (research?.shortSummary ?? displayBillSummary(state.slug, slug, bill.summary)).slice(0, 180),
     };
   } catch {
     return { title: "Bill" };
@@ -60,6 +63,7 @@ export async function BillDetailPage({ stateSlug, slug }: { stateSlug: StateSlug
   const veto = hobbsVetoBadge(state.slug, bill.governorAction);
   const summary = displayBillSummary(state.slug, bill.slug, bill.summary);
   const title = displayBillTitle(state.slug, bill.slug, bill.title);
+  const research = billResearchFor(state.slug, bill.slug);
   return (
     <article className="space-y-6">
       <p className="text-xs font-semibold uppercase tracking-wide text-crimson">
@@ -81,6 +85,7 @@ export async function BillDetailPage({ stateSlug, slug }: { stateSlug: StateSlug
         </p>
         <p className="mt-2 text-xs text-muted">{state.summaryNote}</p>
       </section>
+      <BillResearchSections research={research} />
       {bill.officialSummary &&
       !bill.summary.startsWith("Official caption:") &&
       !bill.summary.startsWith("Official short title:") ? (

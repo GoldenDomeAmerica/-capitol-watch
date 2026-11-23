@@ -8,6 +8,21 @@ Importers upsert one state. They do not delete another state's rows. `npm run ve
 
 A state in `STATES` can carry `launchesAt`. Until that time it is not a public section. See `docs/site-structure.md`.
 
+## Bill research layer
+
+Deeper bill pages read `src/lib/bill-research/`, a static module keyed by state slug and bill slug. Idaho has five bills in that file. Every other bill, in every state, keeps the summary already on the page and adds the line `Detailed research for this bill is coming soon.` There is no database column for this layer. Preview and production share one database.
+
+Sourcing rules for a new entry, including a future state:
+
+- Official sources come first: the legislature's bill page, bill text, statement of purpose, and statute.
+- Quotes are copied verbatim. They are not shortened or rewritten.
+- Opinion is labeled. A statement of purpose is the sponsor's view. The legislature says a proponent prepares it and that it is not legislative intent.
+- Party comes from the official member page.
+- If a fact or a quote cannot be sourced, write `Not found`. Do not guess.
+- The blank for the next bill is `docs/research/TEMPLATE.md`.
+
+The five Idaho bills were filled from `docs/research/idaho/five-bills-2026.md` and `docs/research/idaho/five-bills-2026-viewpoints.md`. Sources in the module were checked `2026-11-22`.
+
 ## Georgia
 
 Official record: Georgia General Assembly, https://www.legis.ga.gov/. The file we import is an adaptation of the VoteGA.org compilation (https://votega.org), which is CC BY-SA 4.0. VoteGA reads the General Assembly web service. Upstream code is https://github.com/Votega/ga-legislation and https://github.com/Votega/ga-legislators. The ZIP-to-district crosswalk comes from that project. See `data/georgia/LICENSE.md`.

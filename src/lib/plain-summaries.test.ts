@@ -91,7 +91,7 @@ test("other states keep the stored summary until they are added", () => {
 
 test("an Idaho bill card shows the plain summary, not the stored caption", () => {
   const shown = card("idaho", "h0623", "Official caption: Returned Signed by the President.");
-  assert.match(shown, /daily moment of silence/);
+  assert.match(shown, /at least 60 seconds of silence/);
   assert.doesNotMatch(shown, /Returned Signed/);
   assert.match(shown, /text-sm leading-relaxed/);
 

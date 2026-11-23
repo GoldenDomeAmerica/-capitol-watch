@@ -29,8 +29,9 @@ export default function AboutPage() {
         on its own.
       </p>
       <p>
-        Every tracked bill links to its official page. Plain-English summaries are taken from that official caption or summary.
-        They do not add vote counts, dollar figures, or effects that the official text does not state. A “Watch note” is opinion
+        Every tracked bill links to its official page. Plain-English summaries come from that official caption or description.
+        Where a plain-language summary is on file for the bill, that wording is shown on the bill list and the bill page.
+        Those sentences do not add vote counts, dollar figures, or effects that the official text does not state. A “Watch note” is opinion
         and is labeled that way. It is never mixed into the summary.
       </p>
       <h2 className="font-serif text-2xl text-navy">Georgia</h2>
@@ -84,7 +85,9 @@ export default function AboutPage() {
           <h2 className="font-serif text-2xl text-navy">Idaho</h2>
           <p>
             Idaho bill pages link to legislature.idaho.gov. Titles, the official description, the sponsor line, actions, and
-            bill-text PDFs come from the 2026 legislation index and the bill pages. The House and Senate roster comes from the
+            bill-text PDFs come from the 2026 legislation index and the bill pages. The plain-language summary is rewritten
+            from that official description. If the description does not say what the bill would do, the page says a summary
+            is not available yet. The House and Senate roster comes from the
             legislature&apos;s member directory. This v1 tracks a curated shortlist, not every bill filed. There is no scorecards
             page and no vetoes page.
           </p>

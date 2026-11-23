@@ -18,4 +18,4 @@ ZIP-to-district matches come from the U.S. Census Bureau 2024 State Legislative 
 
 Credit: Idaho Legislature. Census relationship files are works of the U.S. Census Bureau.
 
-Plain-English summaries repeat the official description, or the index short title when the description was not on the page. They do not add facts. Application source code outside this data folder is not covered by the data credit above.
+The summary stored in the snapshot repeats the official description, or the index short title when the description was not on the page. Public pages may show a shorter plain-language sentence from `src/lib/plain-summaries.ts`, rewritten from that same description. They do not add facts. Application source code outside this data folder is not covered by the data credit above.

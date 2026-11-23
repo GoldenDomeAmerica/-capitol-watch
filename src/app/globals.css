@@ -9,6 +9,18 @@
   --color-ink: #1a2330;
   --color-muted: #5c6b7a;
   --color-line: #e3dcd0;
+  --color-viewpoint-conservative-bg: #fdecec;
+  --color-viewpoint-conservative-border: #b91c1c;
+  --color-viewpoint-conservative-label: #b91c1c;
+  --color-viewpoint-conservative-quote: #7f1d1d;
+  --color-viewpoint-liberal-bg: #eaf1fb;
+  --color-viewpoint-liberal-border: #1d4ed8;
+  --color-viewpoint-liberal-label: #1d4ed8;
+  --color-viewpoint-liberal-quote: #1e3a8a;
+  --color-viewpoint-citation: #374151;
+  --color-viewpoint-neutral-bg: #f3f4f6;
+  --color-viewpoint-neutral-border: #6b7280;
+  --color-viewpoint-neutral-text: #1f2937;
   --font-sans: var(--font-source-sans);
   --font-serif: var(--font-source-serif);
 }

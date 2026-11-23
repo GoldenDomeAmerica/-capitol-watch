@@ -16,6 +16,18 @@ Defined in `src/app/globals.css` (`@theme inline`) and loaded from `src/app/layo
 | `ink` | `#1a2330` | Default text color. |
 | `muted` | `#5c6b7a` | Secondary text (`text-muted`). |
 | `line` | `#e3dcd0` | Borders and dividers (`border-line`, `divide-line`). |
+| `viewpoint-conservative-bg` | `#fdecec` | Conservative viewpoint box background. |
+| `viewpoint-conservative-border` | `#b91c1c` | Left border of that box. |
+| `viewpoint-conservative-label` | `#b91c1c` | Label "CONSERVATIVE VIEW · Opinion". |
+| `viewpoint-conservative-quote` | `#7f1d1d` | The conservative quote. |
+| `viewpoint-liberal-bg` | `#eaf1fb` | Liberal or opposing viewpoint box background. |
+| `viewpoint-liberal-border` | `#1d4ed8` | Left border of that box. |
+| `viewpoint-liberal-label` | `#1d4ed8` | Label "LIBERAL VIEW · Opinion" or "OPPOSING VIEW · Opinion". |
+| `viewpoint-liberal-quote` | `#1e3a8a` | The liberal or opposing quote. |
+| `viewpoint-citation` | `#374151` | Citation line under a quote: speaker, party, role, outlet, date. |
+| `viewpoint-neutral-bg` | `#f3f4f6` | Neutral box when a side was not found, or when the bill is bipartisan. |
+| `viewpoint-neutral-border` | `#6b7280` | Left border of the neutral box. |
+| `viewpoint-neutral-text` | `#1f2937` | Text in the neutral box. |
 | `white` | CSS white | Text on navy and crimson. Footer copy uses `text-white/80`. The sponsor close control uses `text-white/90` and `hover:bg-white/10`. |
 | Form fields | `bg-white` | Inputs and selects. |
 

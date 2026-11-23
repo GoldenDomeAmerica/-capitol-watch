@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { GovernorAction } from "@/db/schema";
+import { billResearchFor } from "@/lib/bill-research";
+import { displayBillSummary, displayBillTitle, PLAIN_SUMMARY_UNAVAILABLE } from "@/lib/plain-summaries";
 import type { BillCard } from "@/lib/queries";
 import { chamberLabel, formatDate } from "@/lib/site";
 
@@ -11,8 +13,12 @@ export function hobbsVetoBadge(stateSlug: string, action: GovernorAction | null 
 
 export function BillCardView({ bill, stateSlug }: { bill: BillCard; stateSlug: string }) {
   const veto = hobbsVetoBadge(stateSlug, bill.governorAction);
+  const research = billResearchFor(stateSlug, bill.slug);
+  const summary = research?.shortSummary ?? displayBillSummary(stateSlug, bill.slug, bill.summary);
+  const title = displayBillTitle(stateSlug, bill.slug, bill.title);
+  const unavailable = !research && summary === PLAIN_SUMMARY_UNAVAILABLE;
   return (
-    <article className="rounded-lg border border-line bg-paper p-4">
+    <article className="relative rounded-lg border border-line bg-paper p-4">
       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
         <span className="text-crimson">{bill.identifier}</span>
         <span>{chamberLabel(bill.chamber)}</span>
@@ -20,12 +26,16 @@ export function BillCardView({ bill, stateSlug }: { bill: BillCard; stateSlug: s
         {veto ? <span className="rounded-full bg-crimson px-2 py-0.5 text-white">{veto}</span> : null}
       </div>
       <h3 className="mt-1 font-serif text-xl leading-snug text-navy">
-        <Link href={`/${stateSlug}/bills/${bill.slug}`} className="hover:text-crimson">
-          {bill.title}
+        <Link href={`/${stateSlug}/bills/${bill.slug}`} className="after:absolute after:inset-0 hover:text-crimson">
+          {title}
         </Link>
       </h3>
-      <p className="mt-2 text-sm leading-relaxed">{bill.summary}</p>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <p
+        className={unavailable ? "mt-2 text-sm leading-relaxed text-muted" : "mt-2 text-sm leading-relaxed"}
+      >
+        {summary}
+      </p>
+      <div className="relative z-10 mt-3 flex flex-wrap items-center gap-2">
         {bill.topics.map((topic) => (
           <Link
             key={topic.slug}

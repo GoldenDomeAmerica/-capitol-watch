@@ -8,6 +8,21 @@ Importers upsert one state. They do not delete another state's rows. `npm run ve
 
 A state in `STATES` can carry `launchesAt`. Until that time it is not a public section. See `docs/site-structure.md`.
 
+## Bill research layer
+
+Deeper bill pages read `src/lib/bill-research/`, a static module keyed by state slug and bill slug. Idaho has five bills in that file. Every other bill, in every state, keeps the summary already on the page and adds the line `Detailed research for this bill is coming soon.` There is no database column for this layer. Preview and production share one database.
+
+Sourcing rules for a new entry, including a future state:
+
+- Official sources come first: the legislature's bill page, bill text, statement of purpose, and statute.
+- Quotes are copied verbatim. They are not shortened or rewritten.
+- Opinion is labeled. A statement of purpose is the sponsor's view. The legislature says a proponent prepares it and that it is not legislative intent.
+- Party comes from the official member page.
+- If a fact or a quote cannot be sourced, write `Not found`. Do not guess.
+- The blank for the next bill is `docs/research/TEMPLATE.md`.
+
+The five Idaho bills were filled from `docs/research/idaho/five-bills-2026.md` and `docs/research/idaho/five-bills-2026-viewpoints.md`. Sources in the module were checked `2026-11-22`.
+
 ## Georgia
 
 Official record: Georgia General Assembly, https://www.legis.ga.gov/. The file we import is an adaptation of the VoteGA.org compilation (https://votega.org), which is CC BY-SA 4.0. VoteGA reads the General Assembly web service. Upstream code is https://github.com/Votega/ga-legislation and https://github.com/Votega/ga-legislators. The ZIP-to-district crosswalk comes from that project. See `data/georgia/LICENSE.md`.
@@ -49,6 +64,8 @@ The next regular session opens January 11, 2027. Vetoed bills in the shortlist a
 Official record: Idaho Legislature, https://legislature.idaho.gov/. The 2026 legislation index is https://legislature.idaho.gov/sessioninfo/2026/legislation/. Each tracked bill keeps that bill's page, including the official description, the "by" sponsor line, the action list, and the bill-text PDF when the page links one. The House roster is https://legislature.idaho.gov/house/membership/ and the Senate roster is https://legislature.idaho.gov/senate/membership/. See `data/idaho/SOURCES.md`.
 
 Import: `npm run import:idaho` writes `data/idaho/snapshot.json` and `data/idaho/zips.json`. It does not write the database. `scripts/seed-scheduled.ts` inserts Idaho only, and only where a row is missing. The session in the file is the 2026 regular session of the 68th Legislature, which convened January 12, 2026.
+
+Public bill lists and bill pages show a plain-language summary from `src/lib/plain-summaries.ts` when that file has the bill. The bill card (`src/components/bills.tsx`) shows it under the short title on `/{state}/bills`, on topic pages, and on the Arizona vetoes list. The bill page (`BillDetailPage` in `src/components/state-pages.tsx`) shows it in the "Plain-English summary" block, and the page title uses the same short title. The wording is rewritten from the official description on the legislature's bill page. If that description does not say what the bill would do, the file stores the sentence `Summary not available yet`. The summary stored on the bill is left as the importer wrote it. The file's short title is what those pages show, which corrects the index typo on S1441 ("agreemnt") to "agreement". Other states are not in that file yet, so their pages keep the stored title and summary. The review draft is `docs/bill-summaries-draft.md`.
 
 House and Senate share a district number. House members are Seat A or Seat B. ZIP districts use the Census 2024 relationship files and keep each part of a split ZIP that is at least 2 percent of its land area. The directory does not list counties. Home mailing addresses and home phones on the directory are not stored. The phone on the page is the Statehouse number. Co-sponsor PDFs are not parsed. The pages do not include a member-by-member floor roll call, so this file has no `votes` rows. There is no scorecards page and no vetoes page. This v1 is a curated shortlist, not every bill filed.
 

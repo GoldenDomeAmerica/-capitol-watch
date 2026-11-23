@@ -17,6 +17,7 @@ import {
   type PassageVote,
 } from "@/db/schema";
 import { logError } from "@/lib/errors";
+import { plainSummarySlugsMatching } from "@/lib/plain-summaries";
 import { todayIso } from "@/lib/site";
 
 export type BillCard = {
@@ -117,6 +118,7 @@ export async function getLatestActionDate(stateId: string): Promise<string | nul
 
 export async function searchBills(options: {
   stateId: string;
+  stateSlug?: string;
   q?: string;
   topic?: string;
 }): Promise<BillCard[]> {
@@ -142,7 +144,28 @@ export async function searchBills(options: {
     .orderBy(desc(bills.featured), desc(bills.lastActionDate), bills.identifier)
     .limit(80);
   const rows = await query;
-  const cards = await attachTopics(rows);
+  let cards = await attachTopics(rows);
+  if (options.stateSlug && q.length >= 2) {
+    const have = new Set(cards.map((card) => card.slug));
+    const extraSlugs = plainSummarySlugsMatching(options.stateSlug, q).filter((slug) => !have.has(slug));
+    if (extraSlugs.length > 0) {
+      const extraRows = await db
+        .select(billColumns)
+        .from(bills)
+        .where(and(eq(bills.stateId, options.stateId), inArray(bills.slug, extraSlugs)));
+      const extraCards = await attachTopics(extraRows);
+      const topic = options.topic;
+      cards = [...cards, ...extraCards.filter((card) => !topic || card.topics.some((item) => item.slug === topic))];
+      cards.sort((a, b) => {
+        if (a.featured !== b.featured) return a.featured ? -1 : 1;
+        const aDate = a.lastActionDate ?? "";
+        const bDate = b.lastActionDate ?? "";
+        if (aDate !== bDate) return aDate < bDate ? 1 : -1;
+        return a.identifier.localeCompare(b.identifier);
+      });
+      cards = cards.slice(0, 80);
+    }
+  }
   if (q.length >= 2 && cards.length === 0) {
     await db.insert(zeroResultSearches).values({
       query: q.slice(0, 200),

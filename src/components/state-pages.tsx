@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BillResearchSections } from "@/components/bill-research";
 import { BillCardView, BillSearch, hobbsVetoBadge } from "@/components/bills";
 import { StatusBanner } from "@/components/chrome";
 import { SignupForm } from "@/components/signup-form";
@@ -8,6 +9,8 @@ import { databaseConfigured } from "@/db";
 import type { BillAction, GovernorAction, PassageVote } from "@/db/schema";
 import { logError } from "@/lib/errors";
 import { countyNames, districtsForAddress, districtsForZip, type DistrictHit } from "@/lib/find-legislators";
+import { billResearchFor } from "@/lib/bill-research";
+import { displayBillSummary, displayBillTitle, PLAIN_SUMMARY_UNAVAILABLE } from "@/lib/plain-summaries";
 import { getBill, getLegislator, getVetoedBills, searchBills, searchLegislators, type LegislatorCard } from "@/lib/queries";
 import { chamberLabel, formatDate, partyShort } from "@/lib/site";
 import { isStateLive, liveStates } from "@/lib/launch";
@@ -32,9 +35,10 @@ export async function billMetadata(stateSlug: StateSlug, slug: string): Promise<
   try {
     const bill = await getBill(state.id, slug);
     if (!bill) return { title: "Bill not found" };
+    const research = billResearchFor(state.slug, slug);
     return {
-      title: `${bill.identifier}: ${bill.title}`,
-      description: bill.summary.slice(0, 180),
+      title: `${bill.identifier}: ${displayBillTitle(state.slug, slug, bill.title)}`,
+      description: (research?.shortSummary ?? displayBillSummary(state.slug, slug, bill.summary)).slice(0, 180),
     };
   } catch {
     return { title: "Bill" };
@@ -57,19 +61,31 @@ export async function BillDetailPage({ stateSlug, slug }: { stateSlug: StateSlug
   if (failed) return <StatusBanner>This bill could not be loaded.</StatusBanner>;
   if (!bill) notFound();
   const veto = hobbsVetoBadge(state.slug, bill.governorAction);
+  const summary = displayBillSummary(state.slug, bill.slug, bill.summary);
+  const title = displayBillTitle(state.slug, bill.slug, bill.title);
+  const research = billResearchFor(state.slug, bill.slug);
   return (
     <article className="space-y-6">
       <p className="text-xs font-semibold uppercase tracking-wide text-crimson">
         {state.name} · {bill.identifier} · {chamberLabel(bill.chamber)} · {bill.sessionName}
       </p>
-      <h1 className="font-serif text-3xl leading-tight text-navy sm:text-4xl">{bill.title}</h1>
+      <h1 className="font-serif text-3xl leading-tight text-navy sm:text-4xl">{title}</h1>
       {veto ? <p className="inline-flex rounded-full bg-crimson px-3 py-1 text-sm font-semibold text-white">{veto}</p> : null}
       {state.fullTime ? <p className="text-sm text-muted">{state.sessionNote}</p> : null}
       <section className="rounded-lg border border-line bg-paper p-4">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">Plain-English summary</h2>
-        <p className="mt-2 text-base leading-relaxed">{bill.summary}</p>
+        <p
+          className={
+            summary === PLAIN_SUMMARY_UNAVAILABLE
+              ? "mt-2 text-base leading-relaxed text-muted"
+              : "mt-2 text-base leading-relaxed"
+          }
+        >
+          {summary}
+        </p>
         <p className="mt-2 text-xs text-muted">{state.summaryNote}</p>
       </section>
+      <BillResearchSections research={research} />
       {bill.officialSummary &&
       !bill.summary.startsWith("Official caption:") &&
       !bill.summary.startsWith("Official short title:") ? (
@@ -250,7 +266,7 @@ export async function BillsIndexPage({
   let bills;
   let failed = false;
   try {
-    bills = await searchBills({ stateId: state.id, q, topic: topicInfo?.slug });
+    bills = await searchBills({ stateId: state.id, stateSlug: state.slug, q, topic: topicInfo?.slug });
   } catch (error) {
     await logError(error, `/${state.slug}/bills`);
     failed = true;
@@ -346,7 +362,7 @@ export async function TopicPage({
   let bills;
   let failed = false;
   try {
-    bills = await searchBills({ stateId: state.id, q, topic: topic.slug });
+    bills = await searchBills({ stateId: state.id, stateSlug: state.slug, q, topic: topic.slug });
   } catch (error) {
     await logError(error, `/${state.slug}/topics/${slug}`);
     failed = true;
@@ -718,7 +734,7 @@ export async function LegislatorDetailPage({ stateSlug, slug }: { stateSlug: Sta
                 <Link className="font-semibold text-navy underline" href={`/${state.slug}/bills/${bill.slug}`}>
                   {bill.identifier}
                 </Link>{" "}
-                {bill.title}
+                {displayBillTitle(state.slug, bill.slug, bill.title)}
                 {bill.isPrimary ? " · primary sponsor" : ""}
                 {bill.status ? ` · ${bill.status}` : ""}
               </li>
@@ -743,7 +759,9 @@ export async function LegislatorDetailPage({ stateSlug, slug }: { stateSlug: Sta
                 ) : (
                   vote.billIdentifier
                 )}{" "}
-                {vote.billTitle ? `· ${vote.billTitle}` : ""}
+                {vote.billTitle
+                  ? `· ${displayBillTitle(state.slug, vote.billSlug ?? "", vote.billTitle)}`
+                  : ""}
                 <span className="block text-muted">
                   {vote.motion || "Vote"} · {vote.result || "result not listed"} · {formatDate(vote.voteDate)}
                   {vote.yea != null ? ` · ${vote.yea}–${vote.nay ?? "?"}` : ""}

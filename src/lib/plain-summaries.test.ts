@@ -95,7 +95,12 @@ test("an Idaho bill card shows the plain summary, not the stored caption", () =>
   assert.doesNotMatch(shown, /Returned Signed/);
   assert.match(shown, /text-sm leading-relaxed/);
 
-  const missing = card("idaho", "h0551", "Official caption: Returned Signed by the President.");
+  const researched = card("idaho", "h0551", "Official caption: Returned Signed by the President.");
+  assert.match(researched, /Session Law Chapter 19/);
+  assert.doesNotMatch(researched, /Summary not available yet/);
+  assert.doesNotMatch(researched, /Returned Signed/);
+
+  const missing = card("idaho", "h0756", "Official caption: Returned Signed by the President.");
   assert.match(missing, /Summary not available yet/);
   assert.match(missing, /text-muted/);
 

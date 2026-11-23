@@ -33,6 +33,21 @@ Defined in `src/app/globals.css` (`@theme inline`) and loaded from `src/app/layo
 
 `color-scheme` is `light`. Focus visible is a 2px crimson outline, offset 2px.
 
+## Viewpoint boxes
+
+Used by `BillResearchSections` in `src/components/bill-research.tsx`. The hex values are the tokens above.
+
+| Piece | Tokens | Copy |
+| --- | --- | --- |
+| Conservative quote | background `viewpoint-conservative-bg`, left border `viewpoint-conservative-border`, label `viewpoint-conservative-label`, quote `viewpoint-conservative-quote` | Label `CONSERVATIVE VIEW · Opinion` unless a bill sets its own label. |
+| Liberal or opposing quote | background `viewpoint-liberal-bg`, left border `viewpoint-liberal-border`, label `viewpoint-liberal-label`, quote `viewpoint-liberal-quote` | Default label `LIBERAL VIEW · Opinion`. A bill can set `OPPOSING VIEW · Opinion` and still use these colors. |
+| Citation | `viewpoint-citation` | `Citation:` then speaker, party, role, outlet, and date. The outlet is a link. |
+| Side not found, or a bipartisan note | background `viewpoint-neutral-bg`, left border `viewpoint-neutral-border`, text `viewpoint-neutral-text` | Not found: `No conservative quote on the record was found.` or `No liberal quote on the record was found.` Bipartisan: one gray box with the note, and no red or blue box. |
+| Sponsor's view | `bg-paper`, `border-line`, label in `text-muted` | Not a red or blue box. The page says the statement of purpose is prepared by a proponent and is not legislative intent. |
+| Status badge | `border-line`, `bg-paper`, `text-navy`, `rounded-full` | The bill's `statusLabel`, such as an enacted chapter and effective date, or `Died in committee`. |
+
+An advocacy organization uses the liberal box when the quote is the opposing view. Party in the citation is `not applicable`. The organization is not labeled as a legislator.
+
 ## Type
 
 Fonts, in `src/app/layout.tsx` via `next/font/google`, subsets `latin`:

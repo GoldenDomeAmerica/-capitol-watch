@@ -152,7 +152,8 @@ export const STATES: StateSection[] = [
     blurb: "Assembly bills from the 2025–2026 session, and the Assembly and Senate roster.",
     sessionNote:
       "This file covers the 2025–2026 legislative session, which New York names by the opening year, 2025. The tracked bills are ones an Assembly member prime-sponsored.",
-    launchesAt: "2026-11-23T07:00:00-05:00",
+    // Held by owner request until bill research is ready; set a real date to launch.
+    launchesAt: "2099-01-01T07:00:00-05:00",
   },
   {
     id: "tx",
@@ -176,7 +177,8 @@ export const STATES: StateSection[] = [
     blurb: "Bills filed for the 90th regular session, and the current House and Senate roster.",
     sessionNote:
       "This file covers bills filed for the 90th Legislature regular session. The regular session convenes in January 2027. The roster is the sitting directory published for the 89th Legislature.",
-    launchesAt: "2026-11-25T07:00:00-05:00",
+    // Held by owner request until bill research is ready; set a real date to launch.
+    launchesAt: "2099-01-01T07:00:00-05:00",
   },
 ];
 

@@ -57,7 +57,7 @@ test("every Idaho bill in the snapshot has one plain summary, and no extra Idaho
 });
 
 test("written summaries are one or two sentences, and thin bills use the exact flag", () => {
-  const flagged = ["h0551", "h0756", "h0873", "h0911", "s1368", "s1370", "s1391"];
+  const flagged = ["h0756", "h0873", "h0911", "s1368", "s1370", "s1391"];
   for (const row of PLAIN_BILL_SUMMARIES) {
     if (row.summary === PLAIN_SUMMARY_UNAVAILABLE) {
       assert.ok(flagged.includes(row.slug), row.slug);
@@ -70,7 +70,7 @@ test("written summaries are one or two sentences, and thin bills use the exact f
     assert.ok(parts.length >= 1 && parts.length <= 2, `${row.identifier}: ${parts.length}`);
     assert.doesNotMatch(row.summary, /\b(Democrat|Republican|liberal|conservative|radical)\b/i);
   }
-  assert.equal(PLAIN_BILL_SUMMARIES.filter((row) => row.summary === PLAIN_SUMMARY_UNAVAILABLE).length, 7);
+  assert.equal(PLAIN_BILL_SUMMARIES.filter((row) => row.summary === PLAIN_SUMMARY_UNAVAILABLE).length, 6);
 });
 
 test("the review draft matches the summaries the pages show", () => {

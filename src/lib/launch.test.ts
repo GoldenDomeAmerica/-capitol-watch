@@ -11,10 +11,8 @@ const texas = STATES.find((state) => state.slug === "texas");
 
 const beforeIdaho = new Date("2026-11-21T06:59:59-05:00");
 const atIdaho = new Date("2026-11-21T07:00:00-05:00");
-const beforeNewYork = new Date("2026-11-23T06:59:59-05:00");
-const atNewYork = new Date("2026-11-23T07:00:00-05:00");
-const beforeTexas = new Date("2026-11-25T06:59:59-05:00");
-const atTexas = new Date("2026-11-25T07:00:00-05:00");
+const beforeHold = new Date("2099-01-01T06:59:59-05:00");
+const atHold = new Date("2099-01-01T07:00:00-05:00");
 
 function slugs(now: Date): string[] {
   return liveStates(now).map((state) => state.slug);
@@ -36,11 +34,11 @@ test("each new state flips live at its timestamp and not one second earlier", ()
   assert.equal(isStateLive(newYork!, atIdaho), false);
   assert.equal(isStateLive(texas!, atIdaho), false);
 
+  assert.equal(newYork!.launchesAt, "2099-01-01T07:00:00-05:00");
+  assert.equal(texas!.launchesAt, "2099-01-01T07:00:00-05:00");
   assert.deepEqual(slugs(atIdaho), ["georgia", "pennsylvania", "arizona", "idaho"]);
-  assert.deepEqual(slugs(beforeNewYork), ["georgia", "pennsylvania", "arizona", "idaho"]);
-  assert.deepEqual(slugs(atNewYork), ["georgia", "pennsylvania", "arizona", "idaho", "new-york"]);
-  assert.deepEqual(slugs(beforeTexas), ["georgia", "pennsylvania", "arizona", "idaho", "new-york"]);
-  assert.deepEqual(slugs(atTexas), ["georgia", "pennsylvania", "arizona", "idaho", "new-york", "texas"]);
+  assert.deepEqual(slugs(beforeHold), ["georgia", "pennsylvania", "arizona", "idaho"]);
+  assert.deepEqual(slugs(atHold), ["georgia", "pennsylvania", "arizona", "idaho", "new-york", "texas"]);
 });
 
 test("state routes 404 by path until launch, including child routes", () => {
@@ -50,12 +48,12 @@ test("state routes 404 by path until launch, including child routes", () => {
   assert.equal(blockedPublicPath("/idaho/legislators/joe-alfieri", beforeIdaho), true);
   assert.equal(blockedPublicPath("/idaho/topics/taxes", beforeIdaho), true);
   assert.equal(blockedPublicPath("/new-york/legislators", atIdaho), true);
-  assert.equal(blockedPublicPath("/texas/topics/schools", atNewYork), true);
+  assert.equal(blockedPublicPath("/texas/topics/schools", beforeHold), true);
 
   assert.equal(blockedPublicPath("/idaho", atIdaho), false);
   assert.equal(blockedPublicPath("/idaho/bills/h0489", atIdaho), false);
-  assert.equal(blockedPublicPath("/new-york", atNewYork), false);
-  assert.equal(blockedPublicPath("/texas/bills", atTexas), false);
+  assert.equal(blockedPublicPath("/new-york", atHold), false);
+  assert.equal(blockedPublicPath("/texas/bills", atHold), false);
 
   assert.equal(blockedPublicPath("/georgia/bills", beforeIdaho), false);
   assert.equal(blockedPublicPath("/pennsylvania", beforeIdaho), false);
@@ -72,8 +70,8 @@ test("signup and hot-topic slugs follow the same clock", () => {
   assert.equal(after.ok, true);
   if (after.ok) assert.deepEqual(after.states, ["idaho"]);
   assert.equal(parseStateChoice("new-york", atIdaho).ok, false);
-  assert.equal(parseStateChoice("texas", atNewYork).ok, false);
-  assert.equal(parseStateChoice("texas", atTexas).ok, true);
+  assert.equal(parseStateChoice("texas", beforeHold).ok, false);
+  assert.equal(parseStateChoice("texas", atHold).ok, true);
 
   assert.equal(topicOrBillPath("/idaho/topics/taxes", beforeIdaho), false);
   assert.equal(topicOrBillPath("/idaho/bills/h0489", atIdaho), true);
@@ -84,7 +82,7 @@ test("signup and hot-topic slugs follow the same clock", () => {
       weekStart: "2026-11-16",
       topics: [{ rank: 1, title: "Schools", summary: "A topic." }],
     },
-    atNewYork,
+    beforeHold,
   );
   assert.equal(rejected.ok, false);
   const accepted = parseHotTopicReplace(
@@ -93,7 +91,7 @@ test("signup and hot-topic slugs follow the same clock", () => {
       weekStart: "2026-11-16",
       topics: [{ rank: 1, title: "Schools", summary: "A topic." }],
     },
-    atTexas,
+    atHold,
   );
   assert.equal(accepted.ok, true);
 });

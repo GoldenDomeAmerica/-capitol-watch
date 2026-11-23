@@ -10,7 +10,7 @@ A state in `STATES` can carry `launchesAt`. Until that time it is not a public s
 
 ## Bill research layer
 
-Deeper bill pages read `src/lib/bill-research/`, a static module keyed by state slug and bill slug. Idaho has five bills in that file. Every other bill, in every state, keeps the summary already on the page and adds the line `Detailed research for this bill is coming soon.` There is no database column for this layer. Preview and production share one database.
+Deeper bill pages read `src/lib/bill-research/`, a static module keyed by state slug and bill slug. Idaho has fifteen bills in that file. Every other bill, in every state, keeps the summary already on the page and adds the line `Detailed research for this bill is coming soon.` There is no database column for this layer. Preview and production share one database.
 
 Sourcing rules for a new entry, including a future state:
 
@@ -21,7 +21,15 @@ Sourcing rules for a new entry, including a future state:
 - If a fact or a quote cannot be sourced, write `Not found`. Do not guess.
 - The blank for the next bill is `docs/research/TEMPLATE.md`.
 
-The five Idaho bills were filled from `docs/research/idaho/five-bills-2026.md` and `docs/research/idaho/five-bills-2026-viewpoints.md`. Sources in the module were checked `2026-11-22`.
+The first five Idaho bills (H0623, H0559, H0708, H0736, S1349) were filled from `docs/research/idaho/five-bills-2026.md` and `docs/research/idaho/five-bills-2026-viewpoints.md`. The next ten (H0551, H0573, H0592, H0594, H0599, H0612, H0624, H0628, H0636, H0656) were filled from `docs/research/idaho/batch-1-2026.md` and `docs/research/idaho/batch-1-2026-viewpoints.md`. Sources in the module were checked `2026-11-22`. The public line is `checked Nov 22, 2026`.
+
+H0592, H0612, and H0656 died in committee with no floor votes. The status badge says `Died in committee`, and How they voted says `Not found`. The other seven bills in this batch were enacted. The badge names the session-law chapter and the effective date. H0708 and S1349, from the first five, also died in committee.
+
+Where the viewpoints file has no verbatim conservative quote, the Statement of Purpose is the conservative box and is repeated under Sponsor's view, as on H0708 and S1349. H0636 is the exception in this batch: the House floor sponsor is a Democrat, so that statement stays in Sponsor's view and both quote boxes say the side was not found. H0612's Statement of Purpose contacts are Rep. John Gannon (D) and Rep. Stephanie Jo Mickelsen (R), and the bill never reached a floor vote. That page uses one neutral note, the same treatment as H0736, and does not use the red or blue boxes.
+
+H0628 uses the KMVT quotes from Rep. Kyle Harris (R) and Rep. Steve Berch (D). H0592 and H0656 use the ACLU of Idaho written position pages for the opposing box. The speaker is an advocacy organization. Party is `not applicable`, not a legislator. The label is `OPPOSING VIEW · Opinion`, and the box uses the liberal colors.
+
+The roll-call files list members. The page does not reprint those names. How they voted shows the chamber totals, and the collapsed "See how each member voted" link goes to the legislature's bill page, where the names are printed. Bills with no floor vote have no collapsed section. That is the same treatment as the first five. The Idaho snapshot still has no `votes` rows.
 
 ## Georgia
 
@@ -67,7 +75,7 @@ Import: `npm run import:idaho` writes `data/idaho/snapshot.json` and `data/idaho
 
 Public bill lists and bill pages show a plain-language summary from `src/lib/plain-summaries.ts` when that file has the bill. The bill card (`src/components/bills.tsx`) shows it under the short title on `/{state}/bills`, on topic pages, and on the Arizona vetoes list. The bill page (`BillDetailPage` in `src/components/state-pages.tsx`) shows it in the "Plain-English summary" block, and the page title uses the same short title. The wording is rewritten from the official description on the legislature's bill page. If that description does not say what the bill would do, the file stores the sentence `Summary not available yet`. The summary stored on the bill is left as the importer wrote it. The file's short title is what those pages show, which corrects the index typo on S1441 ("agreemnt") to "agreement". Other states are not in that file yet, so their pages keep the stored title and summary. The review draft is `docs/bill-summaries-draft.md`.
 
-House and Senate share a district number. House members are Seat A or Seat B. ZIP districts use the Census 2024 relationship files and keep each part of a split ZIP that is at least 2 percent of its land area. The directory does not list counties. Home mailing addresses and home phones on the directory are not stored. The phone on the page is the Statehouse number. Co-sponsor PDFs are not parsed. The pages do not include a member-by-member floor roll call, so this file has no `votes` rows. There is no scorecards page and no vetoes page. This v1 is a curated shortlist, not every bill filed.
+House and Senate share a district number. House members are Seat A or Seat B. ZIP districts use the Census 2024 relationship files and keep each part of a split ZIP that is at least 2 percent of its land area. The directory does not list counties. Home mailing addresses and home phones on the directory are not stored. The phone on the page is the Statehouse number. Co-sponsor PDFs are not parsed. The pages do not include a member-by-member floor roll call, so this file has no `votes` rows. Deeper research for fifteen Idaho bills lives in `src/lib/bill-research/idaho.ts`, not in this snapshot. There is no scorecards page and no vetoes page. This v1 is a curated shortlist, not every bill filed.
 
 ## New York
 

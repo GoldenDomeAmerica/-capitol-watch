@@ -28,7 +28,8 @@ export const PLAIN_BILL_SUMMARIES: PlainBillSummary[] = [
     slug: "h0551",
     identifier: "H0551",
     title: "Property tax, assessment",
-    summary: PLAIN_SUMMARY_UNAVAILABLE,
+    summary:
+      "This bill would change how new construction is counted on the property-tax roll for fire protection and ambulance service districts, including districts that are not subject to urban-renewal revenue-allocation financing. It would affect those districts and the property taxpayers in them.",
   },
   {
     state: "idaho",

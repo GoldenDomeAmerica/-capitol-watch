@@ -4,11 +4,11 @@ Draft for review. This file is not legal advice. This pass covers Idaho only.
 
 Each sentence is rewritten from the official description on that bill's page at the Idaho Legislature (https://legislature.idaho.gov/), together with the official short title. Nothing was added that those lines do not state. A line that says `Summary not available yet` means the official description did not say what would change, so no effect was guessed.
 
-47 bills. 7 are flagged as not available yet: H0551, H0756, H0873, H0911, S1368, S1370, and S1391.
+47 bills. 6 are flagged as not available yet: H0756, H0873, H0911, S1368, S1370, and S1391.
 
 ## Idaho
 
-- **H0551** Property tax, assessment: Summary not available yet
+- **H0551** Property tax, assessment: This bill would change how new construction is counted on the property-tax roll for fire protection and ambulance service districts, including districts that are not subject to urban-renewal revenue-allocation financing. It would affect those districts and the property taxpayers in them.
 - **H0559** Internal revenue code conformity: This bill would update Idaho tax law to the current federal Internal Revenue Code and change some tax credits and adjustments. It would affect taxpayers who use those credits.
 - **H0573** Firearms instructor, enhanced lic: This bill would let some people teach Idaho law on firearms and the use of deadly force. It would affect those instructors and people seeking an enhanced license to carry a concealed weapon.
 - **H0592** Patient immigration status data: This bill would add rules for hospitals on collecting a patient's immigration status. It would affect hospitals and their patients.
